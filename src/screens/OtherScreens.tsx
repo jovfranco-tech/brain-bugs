@@ -600,7 +600,7 @@ export function SettingsScreen() {
         <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
           <p className="font-bold text-ink mb-1" style={{fontFamily:'"Fredoka",system-ui'}}>ℹ️ Acerca de BRAIN BUGS</p>
           <p className="text-sm text-ink/55 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>Versión 1.1.0 · ¡Piensa. Conecta. Resuelve. Crece!</p>
-          <p className="text-xs text-ink/35 mt-1" style={{fontFamily:'"Nunito",system-ui'}}>MVP — El Bug Coach es determinista, no es IA en vivo. La autenticación usa localStorage a menos que Supabase esté configurado.</p>
+          <p className="text-xs text-ink/35 mt-1" style={{fontFamily:'"Nunito",system-ui'}}>MVP — El Bug Coach es determinista, no es IA en vivo. La autenticación usa localStorage a menos que Firebase esté configurado.</p>
         </div>
 
         <button onClick={signOut}

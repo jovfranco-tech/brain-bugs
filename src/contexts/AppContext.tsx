@@ -10,9 +10,27 @@ import {
 } from '../lib/storage';
 import { WORLDS, getAllLevels } from '../data/worlds';
 import { checkNewBadges } from '../data/badges';
-import { supabase, isSupabaseEnabled } from '../lib/supabase';
+import { auth, db, isFirebaseEnabled } from '../lib/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  type User as FirebaseUser
+} from 'firebase/auth';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from 'firebase/firestore';
 
-const SUPABASE_ENABLED = isSupabaseEnabled();
+const FIREBASE_ENABLED = isFirebaseEnabled();
 
 // ─── SQL to App type mappers ─────────────────────────────────
 function mapParentToLocal(row: any): ParentUser {
@@ -133,51 +151,54 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
   const currentChild = currentChildId ? (childrenList.find(c => c.id === currentChildId) ?? null) : null;
 
-  // ─── Listen to Supabase auth changes reactively ──────────────
+  // ─── Listen to Firebase auth changes reactively ──────────────
   useEffect(() => {
-    if (!supabase) return;
+    if (!auth || !db) return;
 
-    const syncSession = async (user: any) => {
+    const syncSession = async (firebaseUser: FirebaseUser) => {
       setIsLoading(true);
       try {
-        let { data: dbParent } = await supabase
-          .from('parents')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        const parentDocRef = doc(db, 'parents', firebaseUser.uid);
+        const parentDocSnap = await getDoc(parentDocRef);
 
-        if (!dbParent) {
+        let dbParent: any = null;
+
+        if (!parentDocSnap.exists()) {
           const newParent = {
-            id: user.id,
-            email: user.email || '',
-            display_name: user.user_metadata?.displayName || user.email?.split('@')[0] || 'Padre',
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            display_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Padre',
             created_at: new Date().toISOString(),
           };
-          await supabase.from('parents').insert(newParent);
+          await setDoc(parentDocRef, newParent);
           dbParent = newParent;
+        } else {
+          dbParent = parentDocSnap.data();
         }
 
-        const { data: dbChildren } = await supabase
-          .from('children')
-          .select('*')
-          .eq('parent_id', user.id);
+        // Query children collection in Firestore
+        const childrenQuery = query(collection(db, 'children'), where('parent_id', '==', firebaseUser.uid));
+        const childrenQuerySnap = await getDocs(childrenQuery);
+        const dbChildren = childrenQuerySnap.docs.map(d => d.data());
 
         const childrenList = dbChildren ? dbChildren.map(mapChildToLocal) : [];
 
         if (childrenList.length > 0) {
-          const childIds = childrenList.map(c => c.id);
-          const { data: dbProgress } = await supabase
-            .from('progress')
-            .select('*')
-            .in('child_id', childIds);
-
-          if (dbProgress) {
-            const progressMap = getProgressMap();
-            dbProgress.forEach(row => {
-              progressMap[row.child_id] = mapProgressToLocal(row);
-            });
-            saveProgressMap(progressMap);
-          }
+          const progressMap = getProgressMap();
+          
+          // Get all children's progress docs in Firestore in parallel
+          await Promise.all(
+            childrenList.map(async (c) => {
+              const progressDocRef = doc(db, 'progress', c.id);
+              const progressDocSnap = await getDoc(progressDocRef);
+              if (progressDocSnap.exists()) {
+                const row = progressDocSnap.data();
+                progressMap[c.id] = mapProgressToLocal(row);
+              }
+            })
+          );
+          
+          saveProgressMap(progressMap);
         }
 
         const localParent = mapParentToLocal(dbParent);
@@ -190,15 +211,15 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
         setParent(localParent);
         setChildrenList(childrenList);
       } catch (err) {
-        console.error('Error syncing Supabase session:', err);
+        console.error('Error syncing Firebase session:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await syncSession(session.user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        await syncSession(firebaseUser);
       } else {
         setParent(null);
         setChildrenList([]);
@@ -208,13 +229,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        syncSession(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   // ─── Navigation ──────────────────────────────────────────────
@@ -237,27 +252,25 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     setIsLoading(true);
     try {
-      if (supabase) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { displayName } }
+      if (auth && db) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        
+        const p: ParentUser = {
+          id: firebaseUser.uid,
+          email: email.trim().toLowerCase(),
+          displayName: displayName.trim(),
+          createdAt: new Date().toISOString(),
+        };
+
+        // Save in Firestore parents collection
+        await setDoc(doc(db, 'parents', p.id), {
+          id: p.id,
+          email: p.email,
+          display_name: p.displayName,
+          created_at: p.createdAt
         });
-        if (error) return { error: error.message };
-        if (data.user) {
-          const p: ParentUser = {
-            id: data.user.id,
-            email: email.trim().toLowerCase(),
-            displayName: displayName.trim(),
-            createdAt: new Date().toISOString(),
-          };
-          await supabase.from('parents').insert({
-            id: p.id,
-            email: p.email,
-            display_name: p.displayName,
-            created_at: p.createdAt
-          });
-        }
+        
         return {};
       } else {
         await new Promise(r => setTimeout(r, 350));
@@ -275,15 +288,16 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
         setScreen('child-select');
         return {};
       }
+    } catch (error: any) {
+      return { error: error.message };
     } finally { setIsLoading(false); }
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      if (supabase) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return { error: error.message };
+      if (auth && db) {
+        await signInWithEmailAndPassword(auth, email, password);
         return {};
       } else {
         await new Promise(r => setTimeout(r, 350));
@@ -297,12 +311,14 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
         setScreen('child-select');
         return {};
       }
+    } catch (error: any) {
+      return { error: error.message };
     } finally { setIsLoading(false); }
   }, []);
 
   const signOut = useCallback(async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
+    if (auth) {
+      await firebaseSignOut(auth);
     }
     setCurrentParent(null);
     setCurrentChild(null);
@@ -329,15 +345,15 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     saveChild(child);
     setChildrenList(prev => [...prev, child]);
 
-    if (supabase) {
-      supabase.from('children').insert(mapChildToDb(child))
-        .then(({ error }) => { if (error) console.error('Error inserting child:', error); });
+    if (db) {
+      setDoc(doc(db, 'children', child.id), mapChildToDb(child))
+        .catch(error => console.error('Error inserting child:', error));
 
       const initialProg: ProgressRecord = {
         childId: child.id, levelProgress: {}, badges: [], totalPlayTime: 0, sessions: [], activity: [],
       };
-      supabase.from('progress').insert(mapProgressToDb(initialProg))
-        .then(({ error }) => { if (error) console.error('Error inserting progress:', error); });
+      setDoc(doc(db, 'progress', child.id), mapProgressToDb(initialProg))
+        .catch(error => console.error('Error inserting progress:', error));
     }
     return child;
   }, [parent]);
@@ -352,9 +368,9 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
       saveChild(updated);
       setChildrenList(prev => prev.map(c => c.id === childId ? updated : c));
 
-      if (supabase) {
-        supabase.from('children').update(mapChildToDb(updated)).eq('id', childId)
-          .then(({ error }) => { if (error) console.error('Error updating child:', error); });
+      if (db) {
+        updateDoc(doc(db, 'children', childId), mapChildToDb(updated))
+          .catch(error => console.error('Error updating child:', error));
       }
     }
   }, []);
@@ -374,9 +390,11 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
       setCCI(null);
     }
 
-    if (supabase) {
-      supabase.from('children').delete().eq('id', childId)
-        .then(({ error }) => { if (error) console.error('Error deleting child:', error); });
+    if (db) {
+      deleteDoc(doc(db, 'children', childId))
+        .catch(error => console.error('Error deleting child:', error));
+      deleteDoc(doc(db, 'progress', childId))
+        .catch(error => console.error('Error deleting progress:', error));
     }
   }, [currentChildId]);
 
@@ -397,11 +415,11 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     saveChild(updatedChild);
     setChildrenList(prev => prev.map(c => c.id === childId ? updatedChild : c));
 
-    if (supabase) {
-      supabase.from('progress').upsert(mapProgressToDb(emptyProg))
-        .then(({ error }) => { if (error) console.error('Error resetting progress:', error); });
-      supabase.from('children').update(mapChildToDb(updatedChild)).eq('id', childId)
-        .then(({ error }) => { if (error) console.error('Error resetting child stats:', error); });
+    if (db) {
+      setDoc(doc(db, 'progress', childId), mapProgressToDb(emptyProg))
+        .catch(error => console.error('Error resetting progress:', error));
+      updateDoc(doc(db, 'children', childId), mapChildToDb(updatedChild))
+        .catch(error => console.error('Error resetting child stats:', error));
     }
   }, []);
 
@@ -465,12 +483,12 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
     setChildrenList(prev => prev.map(c => c.id === currentChildId ? updatedChild : c));
 
-    if (supabase) {
+    if (db) {
       const finalProg = getProgress(currentChildId);
-      supabase.from('progress').upsert(mapProgressToDb(finalProg))
-        .then(({ error }) => { if (error) console.error('Error saving progress:', error); });
-      supabase.from('children').update(mapChildToDb(updatedChild)).eq('id', currentChildId)
-        .then(({ error }) => { if (error) console.error('Error updating child stats:', error); });
+      setDoc(doc(db, 'progress', currentChildId), mapProgressToDb(finalProg))
+        .catch(error => console.error('Error saving progress:', error));
+      updateDoc(doc(db, 'children', currentChildId), mapChildToDb(updatedChild))
+        .catch(error => console.error('Error updating child stats:', error));
     }
 
     return uniqueNew;
@@ -494,4 +512,4 @@ export function useApp() {
   return ctx;
 }
 
-export { SUPABASE_ENABLED };
+export { FIREBASE_ENABLED };
