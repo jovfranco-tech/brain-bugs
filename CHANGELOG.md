@@ -1,5 +1,13 @@
 # Brain Bugs — Changelog
 
+## v1.1.1 — Firebase Alignment (2025-05)
+
+### 🔥 Database & Auth
+- Completed migration from Supabase to Firebase Auth + Firestore.
+- Added `firestore.rules` to secure parent and child data.
+- Added `docs/FIREBASE_SETUP.md` with full setup instructions.
+- Updated `README.md` and `PRIVACY_NOTES.md` to reflect Firebase backend.
+
 ## v1.1.0 — Prompt 2 Upgrade (2025-05)
 
 ### 🎮 Gameplay

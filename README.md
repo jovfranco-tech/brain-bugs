@@ -18,7 +18,7 @@ Brain Bugs is a mobile-first web app where kids drag and rotate original bug-sha
 
 | Category | Details |
 |---|---|
-| Auth | Parent signup/login (localStorage mock · Supabase-ready) |
+| Auth | Parent signup/login (localStorage mock · Firebase-enabled) |
 | Profiles | Multiple child profiles · Edit · Reset · Delete |
 | Worlds | 🌿 Meadow Path · 💎 Crystal Cave · 🤖 Robo Reef |
 | Levels | 15 puzzles (5 per world) · Star-gated progression |
@@ -59,18 +59,17 @@ npm run dev
 
 ## Authentication
 
-### Without Supabase (default — works immediately)
+### Without Firebase (default — works immediately)
 All data lives in `localStorage`. No setup needed. Accounts persist across page refreshes in the same browser.
 
 > ⚠️ The mock auth uses base64 obfuscation for passwords, not bcrypt. **Do not use for real production data.**
 
-### With Supabase (recommended for deployment)
-1. Create a project at [supabase.com](https://supabase.com)
+### With Firebase (recommended for deployment)
+1. Create a project at [Firebase Console](https://console.firebase.google.com/)
 2. Copy `.env.example` → `.env.local`
-3. Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-4. In `src/contexts/AppContext.tsx`, replace `signUp`/`signIn`/`signOut` bodies with `supabase.auth.*`
-5. In `src/lib/storage.ts`, replace CRUD with `supabase.from('table').*`
-6. All comments marked `// TODO (Supabase):` show exactly where to swap
+3. Fill in the required `VITE_FIREBASE_*` environment variables.
+4. Enable Authentication (Email/Password) and Firestore Database.
+5. See `docs/FIREBASE_SETUP.md` for complete instructions.
 
 ---
 
@@ -79,9 +78,13 @@ All data lives in `localStorage`. No setup needed. Accounts persist across page 
 ```bash
 # .env.local  (copy from .env.example — never commit)
 
-# Supabase (optional; app runs without these using localStorage)
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+# Firebase (optional; app runs without these using localStorage)
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
 
 # App config
 VITE_APP_VERSION=0.3.0-mvp
@@ -112,7 +115,7 @@ src/
 │   ├── puzzles.ts          15 verified puzzles (piece counts match board size)
 │   ├── worlds.ts           3 worlds × 5 levels · star-gate thresholds
 │   └── badges.ts           8 badges + checkNewBadges() utility
-├── lib/storage.ts          localStorage persistence + mock auth (Supabase-ready)
+├── lib/storage.ts          localStorage persistence + mock auth (Firebase-ready)
 ├── contexts/AppContext.tsx Auth · navigation · game state
 ├── components/             Logo · BugSvg · BottomNav · StarRating
 └── screens/
@@ -136,7 +139,7 @@ vercel.json                SPA routing + security headers
 | Area | Status |
 |---|---|
 | Bug Coach | Deterministic state machine — no live LLM |
-| Auth | localStorage unless Supabase is configured |
+| Auth | localStorage unless Firebase is configured |
 | Password security | Base64 obfuscation only — not production-safe |
 | Animations | CSS only — Framer Motion not integrated |
 | Offline/PWA | No service worker or manifest |
@@ -162,7 +165,7 @@ npm run build
 
 | Priority | Feature |
 |---|---|
-| P0 | Supabase Auth + database |
+| P0 | Firebase Auth + database (Completed) |
 | P0 | Production privacy policy + COPPA audit |
 | P1 | Framer Motion animations (piece snap, screen transitions) |
 | P1 | Daily Challenge mode |

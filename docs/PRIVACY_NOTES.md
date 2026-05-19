@@ -15,7 +15,7 @@ Parent accounts contain:
 - **Display name** — for personalization
 - **Password hash** — obfuscated locally (not plain text)
 
-In production (Supabase mode), passwords are handled by Supabase Auth and never stored in the application database.
+In production (Firebase mode), passwords are handled by Firebase Auth and never stored in the application database.
 
 ## Local storage (MVP)
 All data in the MVP is stored in the browser's `localStorage`. It is:
@@ -24,11 +24,11 @@ All data in the MVP is stored in the browser's `localStorage`. It is:
 - **Not sent** over the network
 - **Clearable** by the parent at any time using browser settings or the Reset Progress feature
 
-## Supabase mode (production)
-When `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured:
-- Authentication is handled by Supabase Auth (industry-standard, SOC2 compliant)
-- Data is stored in a private Supabase PostgreSQL database
-- Row-level security (RLS) should be configured so parents can only access their own children's data
+## Firebase mode (production)
+When Firebase environment variables (`VITE_FIREBASE_API_KEY`, etc.) are configured:
+- Authentication is handled by Firebase Auth (industry-standard, secure)
+- Data is stored in a private Firestore database
+- Firestore security rules should be configured so parents can only access their own children's data
 - No data is shared with third parties
 
 ## No tracking

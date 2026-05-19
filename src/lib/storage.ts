@@ -145,7 +145,7 @@ export function getCompletedWorlds(
 
 // ─── Mock auth (localStorage) ─────────────────────────────────
 // NOTE: Intentionally minimal obfuscation (base64 + salt) for demo/MVP.
-// Replace with supabase.auth.* for any real deployment.
+// Replace with Firebase Auth for any real deployment.
 export function hashPassword(password: string): string {
   return btoa(unescape(encodeURIComponent(password + 'bb_2024_salt')));
 }

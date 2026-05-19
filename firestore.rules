@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Parent profiles
+    match /parents/{parentId} {
+      allow read, write: if request.auth != null && request.auth.uid == parentId;
+    }
+    
+    // Child profiles
+    match /children/{childId} {
+      allow read, update, delete: if request.auth != null && resource.data.parent_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.parent_id == request.auth.uid;
+    }
+    
+    // Progress records
+    match /progress/{childId} {
+      // Allows read/write if the corresponding child document belongs to the authenticated parent
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/children/$(childId)).data.parent_id == request.auth.uid;
+    }
+  }
+}
