@@ -210,6 +210,14 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
         setParent(localParent);
         setChildrenList(childrenList);
+
+        // Cambiar de pantalla al selector de niños si venimos de landing, login o signup
+        setScreen((prevScreen) => {
+          if (prevScreen === 'landing' || prevScreen === 'login' || prevScreen === 'signup') {
+            return 'child-select';
+          }
+          return prevScreen;
+        });
       } catch (err) {
         console.error('Error syncing Firebase session:', err);
       } finally {
