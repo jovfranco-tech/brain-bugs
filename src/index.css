@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { font-family: 'Fredoka', system-ui, sans-serif; }
+  button { font-family: inherit; }
+  input, select, textarea { font-family: 'Nunito', system-ui, sans-serif; }
+}
+
+@layer utilities {
+  .shadow-candy { box-shadow: 0 6px 0 rgba(35,19,71,0.22); }
+  .shadow-candy-sm { box-shadow: 0 4px 0 rgba(35,19,71,0.18); }
+  .shadow-candy-lg { box-shadow: 0 8px 0 rgba(35,19,71,0.25); }
+  .shadow-candy-inset { box-shadow: inset 0 -3px 0 rgba(0,0,0,0.18), inset 0 3px 0 rgba(255,255,255,0.28); }
+  .text-stroke { -webkit-text-stroke: 1px rgba(0,0,0,0.1); }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
