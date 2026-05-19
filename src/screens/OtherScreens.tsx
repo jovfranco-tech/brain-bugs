@@ -6,6 +6,7 @@ import { useApp } from '../contexts/AppContext';
 import { BADGES, BADGE_MAP } from '../data/badges';
 import { getProgress, getTotalStars, getPuzzlesSolved } from '../lib/storage';
 import { getAllLevels } from '../data/worlds';
+import { sound } from '../lib/sound';
 
 // ─── Confetti particle ────────────────────────────────────────
 function Confetti({ count = 28 }: { count?: number }) {
@@ -120,7 +121,7 @@ export function VictoryScreen() {
               fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            {currentChild && <BugSvg kind={currentChild.bugCompanion} size={88} animated/>}
+            {currentChild && <BugSvg kind={currentChild.bugCompanion} size={88} animated accessoryId={currentChild.activeAccessoryId}/>}
           </div>
           {stars === 3 && (
             <div className="absolute -top-2 -right-2 text-2xl animate-bounce">🏆</div>
@@ -464,6 +465,93 @@ export function ParentDashboard() {
           )}
         </div>
 
+        {/* AI Coach Premium Report */}
+        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>🤖 AI Coach: Reporte de Inteligencia y Desarrollo</p>
+        <div className="bg-white rounded-3xl p-5 border border-purple-100 flex flex-col gap-4 relative overflow-hidden"
+          style={{boxShadow:'0 8px 30px rgba(142,107,255,0.06), 0 3px 0 rgba(35,19,71,0.07)'}}>
+          
+          <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-purple-500/5 blur-xl pointer-events-none" />
+          
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center text-xl flex-shrink-0">
+              💡
+            </div>
+            <div>
+              <h4 className="text-ink font-bold text-base" style={{fontFamily:'"Fredoka",system-ui'}}>Análisis Cognitivo Escrito</h4>
+              <p className="text-ink/40 text-[10px] font-bold" style={{fontFamily:'"Nunito",system-ui'}}>METRICAS DE HEURÍSTICA DE JUEGO</p>
+            </div>
+          </div>
+
+          <div className="space-y-3.5 mt-1">
+            {/* Logic Analysis */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-xs">📐</span>
+                <span className="text-xs font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>Lógica y Rotación Espacial:</span>
+              </div>
+              <p className="text-xs text-ink/65 leading-relaxed pl-5" style={{fontFamily:'"Nunito",system-ui'}}>
+                {puzzlesSolved === 0 
+                  ? 'Aún no hay datos de juego suficientes. Resuelve niveles para evaluar.'
+                  : puzzlesSolved >= 10 
+                  ? 'Desarrollo Avanzado: Demuestra una habilidad excepcional para predecir la orientación espacial y rotar bichos sin ensayar físicamente demasiadas veces.'
+                  : 'Fase de Exploración: Está asimilando las restricciones de forma tridimensional. Muestra paciencia al ensayar giros en las esquinas.'}
+              </p>
+            </div>
+
+            {/* Resilience Analysis */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-xs">💪</span>
+                <span className="text-xs font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>Resiliencia Cognitiva (Tolerancia al Error):</span>
+              </div>
+              <p className="text-xs text-ink/65 leading-relaxed pl-5" style={{fontFamily:'"Nunito",system-ui'}}>
+                {puzzlesSolved === 0 
+                  ? 'Completar niveles revelará los hábitos de superación ante obstáculos.'
+                  : totalHints === 0 
+                  ? 'Autonomía Sobresaliente: Resuelve todos los retos de forma independiente sin apoyarse en pistas, lo que demuestra alta confianza ante problemas difíciles.'
+                  : totalHints > puzzlesSolved * 1.5 
+                  ? 'Búsqueda Estratégica: Utiliza las pistas como herramienta proactiva de aprendizaje para superar frustraciones, un gran rasgo de adaptabilidad.'
+                  : 'Equilibrio Saludable: Intenta resolver de forma autónoma primero y acude a pistas cortas solo en bloqueos complejos.'}
+              </p>
+            </div>
+
+            {/* Off-screen recommendation plan */}
+            <div className="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 mt-2 relative">
+              <button
+                onClick={() => {
+                  if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const text = "Plan de Actividad Fuera de Pantalla. Uno. Tangrams o Bloques Físicos. Jugar a replicar siluetas para trasladar la manipulación digital al tacto real. Dos. Preguntas de Metacognición. Pregúntale cómo decidió que una pieza cabía en un rincón para fomentar su verbalización lógica. Tres. Rompecabezas de Encaje.";
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'es-ES';
+                    window.speechSynthesis.speak(utterance);
+                  }
+                }}
+                className="absolute top-2.5 right-2.5 text-xs bg-purple-100 hover:bg-purple-200 active:scale-95 p-1 rounded-full text-purple-700"
+                title="Escuchar plan semanal"
+              >
+                🔊
+              </button>
+              
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-sm">🎲</span>
+                <span className="text-xs font-bold text-purple-700" style={{fontFamily:'"Fredoka",system-ui'}}>Plan de Actividad Fuera de Pantalla (Semanal)</span>
+              </div>
+              <ul className="space-y-1.5 pl-4 list-disc text-xs text-ink/75 leading-relaxed" style={{fontFamily:'"Nunito",system-ui'}}>
+                <li>
+                  <strong>Tangrams o Bloques Físicos:</strong> Jugar a replicar siluetas del Tangram para trasladar la manipulación digital a una experiencia de tacto real tridimensional.
+                </li>
+                <li>
+                  <strong>Preguntas de Metacognición:</strong> Cuando jueguen juntos, hazle la pregunta: <em>"¿Cómo decidiste que Rose cabía exactamente en esa esquina?"</em> Esto estimula la verbalización lógica.
+                </li>
+                <li>
+                  <strong>Rompecabezas de Encaje:</strong> Fortalecer el razonamiento espacial con juegos clásicos de apilar o laberintos físicos de bolitas.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Recent activity */}
         {progress && Object.keys(progress.levelProgress).length > 0 && (
           <>
@@ -561,6 +649,9 @@ export function ParentDashboard() {
 // ─── Settings Screen ──────────────────────────────────────────
 export function SettingsScreen() {
   const { navigate, parent, signOut } = useApp();
+  const [musicEnabled, setMusicEnabled] = useState(() => sound.getMusicEnabled());
+  const [sfxEnabled, setSfxEnabled] = useState(() => sound.getSfxEnabled());
+
   return (
     <div className="flex flex-col h-full" style={{background:'#F4F2FA'}}>
       <div className="bg-white px-4 pt-14 pb-3 flex items-center justify-between"
@@ -576,6 +667,60 @@ export function SettingsScreen() {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 space-y-4">
+        {/* Sonido y Música Card */}
+        <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+          <p className="font-bold text-ink mb-3" style={{fontFamily:'"Fredoka",system-ui'}}>🔊 Sonido y Música</p>
+          
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div>
+              <p className="text-sm font-bold text-ink" style={{fontFamily:'"Fredoka",system-ui'}}>Música de Fondo</p>
+              <p className="text-xs text-ink/50 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>Melodía suave de concentración</p>
+            </div>
+            <button
+              onClick={() => {
+                const newVal = !musicEnabled;
+                setMusicEnabled(newVal);
+                sound.setMusicEnabled(newVal);
+              }}
+              className={`w-12 h-7 rounded-full transition-colors duration-200 relative flex items-center px-1 focus:outline-none ${
+                musicEnabled ? 'bg-emerald-400' : 'bg-gray-300'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  musicEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between py-2 pt-3">
+            <div>
+              <p className="text-sm font-bold text-ink" style={{fontFamily:'"Fredoka",system-ui'}}>Efectos de Sonido (SFX)</p>
+              <p className="text-xs text-ink/50 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>Retroalimentación interactiva</p>
+            </div>
+            <button
+              onClick={() => {
+                const newVal = !sfxEnabled;
+                setSfxEnabled(newVal);
+                sound.setSfxEnabled(newVal);
+                if (newVal) {
+                  sound.playSnap();
+                }
+              }}
+              className={`w-12 h-7 rounded-full transition-colors duration-200 relative flex items-center px-1 focus:outline-none ${
+                sfxEnabled ? 'bg-emerald-400' : 'bg-gray-300'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  sfxEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
           <p className="font-bold text-ink mb-0.5" style={{fontFamily:'"Fredoka",system-ui'}}>👤 Cuenta</p>
           <p className="text-sm font-bold text-ink/60" style={{fontFamily:'"Nunito",system-ui'}}>{parent?.displayName}</p>
@@ -613,3 +758,4 @@ export function SettingsScreen() {
     </div>
   );
 }
+

@@ -111,14 +111,30 @@ export default function HomeScreen() {
         {/* Logo area */}
         <div className="flex flex-col items-center mt-2 mb-1">
           <BrainBugsLogo size={28} stacked/>
-          <p className="text-ink/55 text-sm font-medium mt-1.5" style={{fontFamily:'"Fredoka",system-ui', letterSpacing:0.4}}>
-            ¡Piensa · Conecta · Resuelve · Crece!
-          </p>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <p className="text-ink/55 text-sm font-medium" style={{fontFamily:'"Fredoka",system-ui', letterSpacing:0.4}}>
+              ¡Piensa · Conecta · Resuelve · Crece!
+            </p>
+            <button
+              onClick={() => {
+                if ('speechSynthesis' in window) {
+                  window.speechSynthesis.cancel();
+                  const utterance = new SpeechSynthesisUtterance("¡Bienvenido a BRAIN BUGS! ¡Piensa, conecta, resuelve y crece!");
+                  utterance.lang = 'es-ES';
+                  window.speechSynthesis.speak(utterance);
+                }
+              }}
+              className="text-xs bg-white/40 hover:bg-white/60 active:scale-90 p-0.5 rounded-full shadow-sm flex items-center justify-center"
+              title="Escuchar lema"
+            >
+              🔊
+            </button>
+          </div>
         </div>
 
         {/* Mascot bug */}
         <div className="absolute top-32 left-1 z-0 animate-float" style={{animationDelay:'0.2s'}}>
-          <BugSvg kind={currentChild.bugCompanion} size={72}/>
+          <BugSvg kind={currentChild.bugCompanion} size={72} accessoryId={currentChild.activeAccessoryId}/>
         </div>
         <div className="absolute top-48 right-1 z-0 animate-float" style={{animationDelay:'1.1s'}}>
           <BugSvg kind="pip" size={54}/>
@@ -215,6 +231,13 @@ export default function HomeScreen() {
               icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#fff" opacity="0.9"/><path d="M3 12h18M12 3a14 14 0 010 18" stroke="#2890D0" strokeWidth="1.8"/></svg>}/>
             <NavPill label="Medallas" sub={`${progress.badges.length} medallas`} color="#FFC83D" onClick={() => navigate('rewards')}
               icon={<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l2.4 4.9L20 8l-4 3.9.9 5.5L12 14.8 7.1 17.4 8 11.9 4 8l5.6-1.1z" fill="#fff"/></svg>}/>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 mt-0.5">
+            <NavPill label="Estilo Bicho" sub="Tienda de sombreros 🎩" color="#FF6FA8" onClick={() => navigate('accessory-store')}
+              icon={<span className="text-xl">🎩</span>}/>
+            <NavPill label="Bug Lab" sub={currentChild.totalXP >= 50 ? "Diseñar niveles 🔬" : "Bloqueado (50 XP) 🔒"} color="#8E6BFF" onClick={() => navigate('bug-lab')}
+              icon={<span className="text-xl">🔬</span>}/>
           </div>
         </div>
       </div>

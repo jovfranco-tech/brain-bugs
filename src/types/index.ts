@@ -34,6 +34,8 @@ export interface ChildProfile {
   totalXP: number;
   currentLevel: number;
   currentWorld: WorldId;
+  unlockedAccessories?: string[];
+  activeAccessoryId?: string | null;
 }
 
 // ─── World & Level ────────────────────────────────────────────
@@ -182,7 +184,9 @@ export type Screen =
   | 'victory'
   | 'rewards'
   | 'parent-dashboard'
-  | 'settings';
+  | 'settings'
+  | 'bug-lab'
+  | 'accessory-store';
 
 export interface NavState {
   screen: Screen;

@@ -11,6 +11,8 @@ import {
 import { WORLDS, getAllLevels } from '../data/worlds';
 import { checkNewBadges } from '../data/badges';
 import { auth, db, isFirebaseEnabled } from '../lib/firebase';
+import { sound } from '../lib/sound';
+
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -55,6 +57,8 @@ function mapChildToLocal(row: any): ChildProfile {
     totalXP: row.total_xp,
     currentLevel: row.current_level,
     currentWorld: row.current_world as WorldId,
+    unlockedAccessories: row.unlocked_accessories || [],
+    activeAccessoryId: row.active_accessory_id || null,
   };
 }
 
@@ -71,6 +75,8 @@ function mapChildToDb(c: ChildProfile) {
     total_xp: c.totalXP,
     current_level: c.currentLevel,
     current_world: c.currentWorld,
+    unlocked_accessories: c.unlockedAccessories || [],
+    active_accessory_id: c.activeAccessoryId || null,
   };
 }
 
@@ -131,6 +137,9 @@ interface AppContextValue {
   setCurrentLevel: (levelId: string, worldId: WorldId) => void;
   victoryData: VictoryData | null;
   setVictoryData: (d: VictoryData | null) => void;
+  unlockAccessory: (childId: string, accessoryId: string, costXP: number) => void;
+  equipAccessory: (childId: string, accessoryId: string | null) => void;
+
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -388,7 +397,9 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     setCCI(childId);
     setScreen('home');
     setHistory([]);
+    sound.startMusic();
   }, []);
+
 
   const deleteChildProfile = useCallback((childId: string) => {
     deleteChild(childId);
@@ -418,7 +429,8 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
     const updatedChild: ChildProfile = {
       ...child,
-      totalStars: 0, totalXP: 0, currentLevel: 1, currentWorld: 'meadow'
+      totalStars: 0, totalXP: 0, currentLevel: 1, currentWorld: 'meadow',
+      unlockedAccessories: [], activeAccessoryId: null
     };
     saveChild(updatedChild);
     setChildrenList(prev => prev.map(c => c.id === childId ? updatedChild : c));
@@ -430,6 +442,49 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
         .catch(error => console.error('Error resetting child stats:', error));
     }
   }, []);
+
+  const unlockAccessory = useCallback((childId: string, accessoryId: string, costXP: number) => {
+    const child = getChildById(childId);
+    if (!child) return;
+
+    if (child.totalXP < costXP) return;
+    const unlocked = child.unlockedAccessories || [];
+    if (unlocked.includes(accessoryId)) return;
+
+    const updatedChild: ChildProfile = {
+      ...child,
+      totalXP: child.totalXP - costXP,
+      unlockedAccessories: [...unlocked, accessoryId],
+      activeAccessoryId: accessoryId,
+    };
+
+    saveChild(updatedChild);
+    setChildrenList(prev => prev.map(c => c.id === childId ? updatedChild : c));
+
+    if (db) {
+      updateDoc(doc(db, 'children', childId), mapChildToDb(updatedChild))
+        .catch(error => console.error('Error unlocking accessory:', error));
+    }
+  }, []);
+
+  const equipAccessory = useCallback((childId: string, accessoryId: string | null) => {
+    const child = getChildById(childId);
+    if (!child) return;
+
+    const updatedChild: ChildProfile = {
+      ...child,
+      activeAccessoryId: accessoryId,
+    };
+
+    saveChild(updatedChild);
+    setChildrenList(prev => prev.map(c => c.id === childId ? updatedChild : c));
+
+    if (db) {
+      updateDoc(doc(db, 'children', childId), mapChildToDb(updatedChild))
+        .catch(error => console.error('Error equipping accessory:', error));
+    }
+  }, []);
+
 
   // ─── Game progress ────────────────────────────────────────────
   const getChildProgress = useCallback((childId?: string) => {
@@ -509,6 +564,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     screen, screenParams, navigate, goBack,
     getChildProgress, completeLevel, setCurrentLevel,
     victoryData, setVictoryData: setVD,
+    unlockAccessory, equipAccessory,
   };
 
   return <AppContext.Provider value={value}>{childNodes}</AppContext.Provider>;

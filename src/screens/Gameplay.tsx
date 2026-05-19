@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import type { WorldId, Puzzle, PuzzlePiece, Placement, BoardCell } from '../types';
+import type { WorldId, Puzzle, PuzzlePiece, Placement, BoardCell, BugKind } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { PUZZLES } from '../data/puzzles';
-import { applyRotation, shapeSize } from '../data/characters';
+import { applyRotation, shapeSize, makePiece } from '../data/characters';
 import BugSvg from '../components/BugSvg';
 import StarRating from '../components/StarRating';
+import { sound } from '../lib/sound';
 
 // ─── Board helpers ────────────────────────────────────────────
 function buildEmptyBoard(puzzle: Puzzle): BoardCell[][] {
@@ -157,30 +158,68 @@ function coachHint(
   return puzzle.hints[hintIdx] ?? "Una pieza a la vez — ¡lo estás haciendo genial!";
 }
 
+function decodeLevelCode(code: string): any {
+  if (!code.startsWith('custom-')) return null;
+  let base64 = code.substring(7).replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) base64 += '=';
+  try {
+    const jsonStr = decodeURIComponent(escape(atob(base64)));
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    console.error("Failed to decode level code", e);
+    return null;
+  }
+}
+
 // ─── Main Gameplay Screen ─────────────────────────────────────
 export default function Gameplay() {
   const { navigate, screenParams, currentChild, completeLevel, setVictoryData } = useApp();
   const { levelId = '', worldId = '' } = screenParams;
 
-  // Derive puzzle ID: 'meadow-l1' → 'meadow-1', 'robo-l3' → 'robo-3'
-  const puzzleId = useMemo(() => {
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-ES';
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const puzzle = useMemo(() => {
+    if (!levelId) return null;
+
+    if (levelId.startsWith('custom-')) {
+      const data = decodeLevelCode(levelId);
+      if (!data) return null;
+
+      const customPieces = (data.p || []).map((kind: string, idx: number) =>
+        makePiece(kind as BugKind, `-${idx}`)
+      );
+
+      return {
+        id: levelId,
+        name: 'Laboratorio de Bichos',
+        description: '¡Nivel personalizado creado en el Bug Lab!',
+        worldId: 'meadow' as WorldId,
+        difficulty: 'medium' as const,
+        cols: data.c || 5,
+        rows: data.r || 5,
+        blockedCells: data.b || [],
+        bugLocks: data.l || [],
+        pieces: customPieces,
+        hints: ['¡Intenta resolver este nivel personalizado!', 'Coloca las piezas más grandes primero.'],
+        maxMoves: Math.max(5, customPieces.length * 2 + 1),
+      } as Puzzle;
+    }
+
     if (levelId.startsWith('daily-')) {
       const seedStr = levelId.replace('daily-', '');
       const seed = parseInt(seedStr, 10) || 1;
       const keys = Object.keys(PUZZLES).filter(k => !k.startsWith('daily-'));
       const index = seed % keys.length;
-      return keys[index];
-    }
-    const parts = levelId.split('-');
-    if (parts.length < 2) return '';
-    return `${parts[0]}-${parts[1].replace('l', '')}`;
-  }, [levelId]);
-
-  const puzzle = useMemo(() => {
-    if (!puzzleId) return null;
-    const base = PUZZLES[puzzleId];
-    if (!base) return null;
-    if (levelId.startsWith('daily-')) {
+      const baseId = keys[index];
+      const base = PUZZLES[baseId];
+      if (!base) return null;
       return {
         ...base,
         id: levelId,
@@ -188,8 +227,12 @@ export default function Gameplay() {
         description: '¡Completa este rompecabezas especial de hoy para ganar +20 XP y una medalla especial!',
       };
     }
-    return base;
-  }, [puzzleId, levelId]);
+
+    const parts = levelId.split('-');
+    if (parts.length < 2) return null;
+    const baseId = `${parts[0]}-${parts[1].replace('l', '')}`;
+    return PUZZLES[baseId] || null;
+  }, [levelId]);
 
   // ── Game state ──────────────────────────────────────────────
   const [board,        setBoard]       = useState<BoardCell[][]>(() => puzzle ? buildEmptyBoard(puzzle) : []);
@@ -257,10 +300,14 @@ export default function Gameplay() {
     setFailCount(0);
     setSelected(newAvail[0] ?? null);
 
+    // Play snap sound on successful placement
+    sound.playSnap();
+
     // Auto-detect win
     if (isBoardSolved(newBoard)) {
       setSolved(true);
       setSolveGlow(true);
+      sound.playVictory();
       const stars = calcStars(moves + 1, puzzle.maxMoves);
       setCoachMsg("¡Rompecabezas resuelto! ¡Increíble trabajo! 🎉");
       setTimeout(() => {
@@ -271,6 +318,7 @@ export default function Gameplay() {
     }
     return true;
   }, [solved, puzzle, board, available, rotations, moves, hintsUsed, levelId, worldId]);
+
 
   // ── Drag handling ────────────────────────────────────────────
   const getCellFromPoint = useCallback((clientX: number, clientY: number) => {
@@ -288,6 +336,7 @@ export default function Gameplay() {
     setDragPieceId(pieceId);
     setSelected(pieceId);
     setGhostPos({ x: e.clientX, y: e.clientY });
+    sound.playDrag();
   }, [solved]);
 
   const onContainerPointerMove = useCallback((e: React.PointerEvent) => {
@@ -314,6 +363,7 @@ export default function Gameplay() {
   }, [selected, dragPieceId, solved, tryPlace]);
 
   const triggerShake = useCallback((pieceId: string) => {
+    sound.playError();
     setShakeId(pieceId);
     setFailCount(n => n + 1);
     setTimeout(() => setShakeId(null), 420);
@@ -353,6 +403,7 @@ export default function Gameplay() {
     if (!puzzle) return;
     if (isBoardSolved(board)) {
       setSolved(true);
+      sound.playVictory();
       const stars = calcStars(moves, puzzle.maxMoves);
       setCoachMsg("¡Rompecabezas resuelto! ¡Lo lograste! 🎉");
       const badges = completeLevel(levelId, worldId as WorldId, stars, moves, hintsUsed);
@@ -363,6 +414,7 @@ export default function Gameplay() {
     } else {
       setCoachMsg("Algunas celdas podrían estar superpuestas — intenta reiniciar y colocar con más cuidado.");
     }
+
   }, [puzzle, board, moves, hintsUsed, available.length, levelId, worldId]);
 
   // ── Preview validity ──────────────────────────────────────────
@@ -447,9 +499,16 @@ export default function Gameplay() {
         </button>
 
         <div className="flex flex-col items-center">
-          <div className="px-5 py-1.5 rounded-full text-ink text-sm font-bold tracking-widest uppercase"
+          <div className="px-5 py-1.5 rounded-full text-ink text-sm font-bold tracking-widest uppercase flex items-center gap-1.5"
             style={{ background:'linear-gradient(180deg,#FFD55E,#FFB23A)', fontFamily:'"Fredoka",system-ui', boxShadow:'0 3px 0 #B97808' }}>
-            {levelLabel}
+            <span>{levelLabel}</span>
+            <button
+              onClick={() => speakText(`${levelLabel}. ${puzzle.name}`)}
+              className="text-xs bg-white/20 hover:bg-white/35 active:scale-90 p-0.5 rounded-full"
+              title="Escuchar título"
+            >
+              🔊
+            </button>
           </div>
           <div className="text-white/45 text-xs mt-1 font-semibold" style={{ fontFamily:'"Nunito",system-ui' }}>
             {puzzle.name}
@@ -610,9 +669,18 @@ export default function Gameplay() {
             style={{ background:'#3FD09E' }}/>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-bold uppercase tracking-widest mb-0.5"
-            style={{ color:'#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
-            ENTRENADOR BUG
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold uppercase tracking-widest mb-0.5"
+              style={{ color:'#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
+              ENTRENADOR BUG
+            </div>
+            <button
+              onClick={() => speakText(coachMsg)}
+              className="text-[10px] font-bold text-[#FF8A4C] hover:scale-105 active:scale-95 px-1.5 py-0.5 rounded bg-orange-100 flex items-center gap-0.5"
+              title="Escuchar entrenador"
+            >
+              <span>🔊</span><span>Escuchar</span>
+            </button>
           </div>
           <p className="text-sm font-bold text-ink leading-snug" style={{ fontFamily:'"Nunito",system-ui' }}>
             {coachMsg}

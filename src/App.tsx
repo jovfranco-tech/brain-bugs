@@ -8,6 +8,8 @@ import HomeScreen from './screens/HomeScreen';
 import WorldMap from './screens/WorldMap';
 import Gameplay from './screens/Gameplay';
 import { VictoryScreen, RewardsScreen, ParentDashboard, SettingsScreen } from './screens/OtherScreens';
+import BugLab from './screens/BugLab';
+import AccessoryStore from './screens/AccessoryStore';
 
 function AppRouter() {
   const { screen } = useApp();
@@ -27,6 +29,8 @@ function AppRouter() {
       case 'rewards':          return <RewardsScreen />;
       case 'parent-dashboard': return <ParentDashboard />;
       case 'settings':         return <SettingsScreen />;
+      case 'bug-lab':          return <BugLab />;
+      case 'accessory-store':  return <AccessoryStore />;
       default:                 return <Landing />;
     }
   };
