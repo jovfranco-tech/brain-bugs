@@ -24,7 +24,7 @@ VITE_FIREBASE_APP_ID=your_app_id
 2. Click **Email/Password** and enable it.
 3. Save the changes.
 4. Go to the **Settings** tab in Authentication > **Authorized domains**.
-5. Add your Vercel production domain (e.g., `brain-bugs-3.vercel.app`) to ensure authentication works in production.
+5. Add your Vercel production domain (e.g., `brain-bugs.vercel.app`) to ensure authentication works in production.
 
 ## 4. Configure Firestore Database
 1. Go to **Firestore Database** in the Firebase Console.
