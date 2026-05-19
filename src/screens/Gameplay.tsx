@@ -115,41 +115,41 @@ function coachHint(
 
   // Solved
   if (available.length === 0 && placements.length === total)
-    return "All bugs placed! Hit Check to finish! 🎉";
+    return "¡Todos los bichos colocados! ¡Presiona Comprobar para terminar! 🎉";
 
   // Just started
   if (moves === 0 && placed === 0)
-    return puzzle.hints[0] ?? "Grab the biggest bug first — it needs the most space!";
+    return puzzle.hints[0] ?? "¡Agarra primero el bicho más grande, necesita más espacio!";
 
   // Repeated failures — be more specific
   if (failCount >= 3)
-    return "That spot seems stuck. Try a completely different area of the board! 🔄";
+    return "Ese lugar parece atascado. ¡Intenta en un área diferente del tablero! 🔄";
   if (failCount === 2)
-    return "Not quite! Rotate the piece — sometimes a 90° flip makes all the difference.";
+    return "¡Casi! Rota la pieza — a veces un giro de 90° hace toda la diferencia.";
   if (failCount === 1)
-    return "Oops — that cell is blocked or taken. Try nearby cells or rotate first.";
+    return "¡Uy! Esa celda está bloqueada u ocupada. Intenta cerca o rota la pieza primero.";
 
   // Too many hints
   if (hintsUsed >= 3)
-    return "Take your time. Look at the empty space and imagine which bug fits it.";
+    return "Tómate tu tiempo. Mira el espacio vacío e imagina qué bicho cabe ahí.";
 
   // Near completion
   if (available.length === 1)
-    return "Just one bug left — look for the exact gap it fills! You are almost there 💪";
+    return "¡Solo queda un bicho! ¡Busca el hueco exacto que llena! Ya casi lo tienes 💪";
   if (frac >= 0.7)
-    return "Great progress! Study what space is left and match a bug to it.";
+    return "¡Gran progreso! Observa el espacio que queda y busca el bicho adecuado.";
 
   // Mid-puzzle hints
   if (frac >= 0.4 && frac < 0.7)
-    return puzzle.hints[Math.min(1, puzzle.hints.length-1)] ?? "Think about the corners — they limit options the most!";
+    return puzzle.hints[Math.min(1, puzzle.hints.length-1)] ?? "¡Piensa en las esquinas, son las que más limitan las opciones!";
 
   // Early moves
   if (moves > 0 && moves < 4)
-    return "Good start! Look for the next biggest bug to place.";
+    return "¡Buen comienzo! Busca el siguiente bicho más grande para colocar.";
 
   // General hints from puzzle data
   const hintIdx = Math.min(Math.floor(hintsUsed), puzzle.hints.length - 1);
-  return puzzle.hints[hintIdx] ?? "One piece at a time — you are doing great!";
+  return puzzle.hints[hintIdx] ?? "Una pieza a la vez — ¡lo estás haciendo genial!";
 }
 
 // ─── Main Gameplay Screen ─────────────────────────────────────
@@ -194,7 +194,7 @@ export default function Gameplay() {
 
   // Initial coach message
   useEffect(() => {
-    if (puzzle) setCoachMsg(puzzle.hints[0] ?? "Start with the biggest bug piece!");
+    if (puzzle) setCoachMsg(puzzle.hints[0] ?? "¡Empieza con el bicho más grande!");
   }, [puzzle]);
 
   // Update coach when state changes
@@ -236,7 +236,7 @@ export default function Gameplay() {
       setSolved(true);
       setSolveGlow(true);
       const stars = calcStars(moves + 1, puzzle.maxMoves);
-      setCoachMsg("Puzzle solved! Amazing work! 🎉");
+      setCoachMsg("¡Rompecabezas resuelto! ¡Increíble trabajo! 🎉");
       setTimeout(() => {
         const badges = completeLevel(levelId, worldId as WorldId, stars, moves + 1, hintsUsed);
         setVictoryData({ levelId, worldId: worldId as WorldId, stars, moves: moves + 1, hintsUsed, newBadges: badges });
@@ -298,7 +298,7 @@ export default function Gameplay() {
     if (!selected) return;
     setRotations(r => ({ ...r, [selected]: (((r[selected] ?? 0) + 1) % 4) as 0|1|2|3 }));
     setFailCount(0);
-    setCoachMsg("Rotated! Now try placing it on the board.");
+    setCoachMsg("¡Rotado! Ahora intenta colocarlo en el tablero.");
   }, [selected]);
 
   const resetPuzzle = useCallback(() => {
@@ -312,7 +312,7 @@ export default function Gameplay() {
     setFailCount(0);
     setSolved(false);
     setSolveGlow(false);
-    setCoachMsg("Fresh start! " + (puzzle.hints[0] ?? "You've got this!"));
+    setCoachMsg("¡Nuevo comienzo! " + (puzzle.hints[0] ?? "¡Tú puedes con esto!"));
   }, [puzzle]);
 
   const askHint = useCallback(() => {
@@ -320,7 +320,7 @@ export default function Gameplay() {
     const newCount = hintsUsed + 1;
     setHintsUsed(newCount);
     const idx = Math.min(newCount - 1, puzzle.hints.length - 1);
-    setCoachMsg("💡 " + (puzzle.hints[idx] ?? "Look at the corners first — they limit your options the most!"));
+    setCoachMsg("💡 " + (puzzle.hints[idx] ?? "¡Piensa en las esquinas, son las que más limitan las opciones!"));
   }, [hintsUsed, puzzle]);
 
   const checkSolution = useCallback(() => {
@@ -328,14 +328,14 @@ export default function Gameplay() {
     if (isBoardSolved(board)) {
       setSolved(true);
       const stars = calcStars(moves, puzzle.maxMoves);
-      setCoachMsg("Puzzle solved! You did it! 🎉");
+      setCoachMsg("¡Rompecabezas resuelto! ¡Lo lograste! 🎉");
       const badges = completeLevel(levelId, worldId as WorldId, stars, moves, hintsUsed);
       setVictoryData({ levelId, worldId: worldId as WorldId, stars, moves, hintsUsed, newBadges: badges });
       navigate('victory');
     } else if (available.length > 0) {
-      setCoachMsg(`${available.length} bug${available.length !== 1 ? 's' : ''} still need placing!`);
+      setCoachMsg(`¡Aún faltan ${available.length} bicho${available.length !== 1 ? 's' : ''} por colocar!`);
     } else {
-      setCoachMsg("Some cells might be overlapping — try resetting and placing more carefully.");
+      setCoachMsg("Algunas celdas podrían estar superpuestas — intenta reiniciar y colocar con más cuidado.");
     }
   }, [puzzle, board, moves, hintsUsed, available.length, levelId, worldId]);
 
@@ -362,12 +362,12 @@ export default function Gameplay() {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-4" style={{ background:'#231347' }}>
         <p className="text-white text-lg font-bold" style={{ fontFamily:'"Fredoka",system-ui' }}>
-          Puzzle not found
+          Rompecabezas no encontrado
         </p>
         <button onClick={() => navigate('world-map')}
           className="px-6 py-3 rounded-2xl bg-grape text-white font-bold"
           style={{ fontFamily:'"Fredoka",system-ui' }}>
-          Back to Map
+          Volver al mapa
         </button>
       </div>
     );
@@ -382,9 +382,9 @@ export default function Gameplay() {
 
   const starPreview = moves > 0 ? calcStars(moves + 1, puzzle.maxMoves) : 3;
   const levelLabel  = levelId
-    .replace('meadow-l', 'Meadow ')
-    .replace('crystal-l', 'Cave ')
-    .replace('robo-l',    'Reef ');
+    .replace('meadow-l', 'Pradera ')
+    .replace('crystal-l', 'Cueva ')
+    .replace('robo-l',    'Arrecife ');
 
   return (
     <div
@@ -427,7 +427,7 @@ export default function Gameplay() {
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-center gap-0.5">
             <span className="text-white font-bold text-lg leading-none" style={{ fontFamily:'"Fredoka",system-ui' }}>{moves}</span>
-            <span className="text-white/38 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>MOVES</span>
+            <span className="text-white/38 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>MOVIMIENTOS</span>
           </div>
           <StarRating stars={starPreview} size={13}/>
         </div>
@@ -534,7 +534,7 @@ export default function Gameplay() {
 
           {available.length === 0 && !solved && (
             <p className="text-white/50 text-sm font-bold m-auto" style={{ fontFamily:'"Fredoka",system-ui' }}>
-              All bugs placed! Press Check ✓
+              ¡Todos los bichos colocados! Pulsa Comprobar ✓
             </p>
           )}
         </div>
@@ -542,10 +542,10 @@ export default function Gameplay() {
         {/* Tray instructions */}
         <div className="flex justify-between px-1 mt-1">
           <span className="text-white/35 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>
-            Tap to select · Drag onto board
+            Toca para seleccionar · Arrastra al tablero
           </span>
           <span className="text-white/35 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>
-            {available.length}/{puzzle.pieces.length} remaining
+            Restan {available.length}/{puzzle.pieces.length}
           </span>
         </div>
       </div>
@@ -561,7 +561,7 @@ export default function Gameplay() {
         <div className="flex-1 min-w-0">
           <div className="text-xs font-bold uppercase tracking-widest mb-0.5"
             style={{ color:'#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
-            BUG COACH
+            ENTRENADOR BUG
           </div>
           <p className="text-sm font-bold text-ink leading-snug" style={{ fontFamily:'"Nunito",system-ui' }}>
             {coachMsg}
@@ -571,21 +571,21 @@ export default function Gameplay() {
 
       {/* ── Controls ───────────────────────────────────────── */}
       <div className="relative z-10 flex items-center justify-around px-4 pb-5 flex-shrink-0">
-        <CtrlBtn color="#FF7B5C" dark="#C73000" label="Reset" onClick={resetPuzzle}
+        <CtrlBtn color="#FF7B5C" dark="#C73000" label="Reiniciar" onClick={resetPuzzle}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.6-3M4 14a8 8 0 0014.6 3"
               stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color="#3FD09E" dark="#1F9A6E" label="Rotate" onClick={rotatePiece} disabled={!selected || solved}
+        <CtrlBtn color="#3FD09E" dark="#1F9A6E" label="Rotar" onClick={rotatePiece} disabled={!selected || solved}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M21 12a9 9 0 01-15.5 6.3M3 12a9 9 0 0115.5-6.3" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
             <path d="M19 3l2 3-3 1M5 21l-2-3 3-1" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color="#FFC83D" dark="#B97808" label="Check" big onClick={checkSolution}
+        <CtrlBtn color="#FFC83D" dark="#B97808" label="Comprobar" big onClick={checkSolution}
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M4 12l5 5L20 6" stroke="#231347" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color="#8E6BFF" dark="#5A3BD1" label="Hint" onClick={askHint} disabled={solved}
+        <CtrlBtn color="#8E6BFF" dark="#5A3BD1" label="Pista" onClick={askHint} disabled={solved}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c1 1 1.5 1.7 1.5 3v.5h5V16.5c0-1.3.5-2 1.5-3A6 6 0 0012 3z"
               stroke="#fff" strokeWidth="2.2" strokeLinejoin="round"/>

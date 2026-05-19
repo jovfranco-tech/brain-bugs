@@ -28,7 +28,7 @@ interface ProfileFormProps {
   saveLabel?: string;
 }
 
-function ProfileForm({ initial, onSave, onCancel, saveLabel = 'START PLAYING! 🚀' }: ProfileFormProps) {
+function ProfileForm({ initial, onSave, onCancel, saveLabel = '¡A JUGAR! 🚀' }: ProfileFormProps) {
   const [nickname,     setNickname]    = useState(initial?.nickname ?? '');
   const [avatarId,     setAvatarId]    = useState<AvatarId>(initial?.avatarId ?? 'buzzy');
   const [bugCompanion, setBugCompanion] = useState<BugKind>(initial?.bugCompanion ?? 'pip');
@@ -45,9 +45,9 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = 'START PLAYING! �
       {/* Nickname */}
       <div className="mb-4">
         <label className="block text-xs font-bold text-ink/50 uppercase tracking-wide mb-1.5"
-          style={{fontFamily:'"Nunito",system-ui'}}>Nickname</label>
+          style={{fontFamily:'"Nunito",system-ui'}}>Apodo</label>
         <input type="text" value={nickname} onChange={e => setNickname(e.target.value)}
-          placeholder="e.g. Alex" maxLength={18}
+          placeholder="ej. Alex" maxLength={18}
           className="w-full px-4 py-3 rounded-2xl text-ink font-bold outline-none focus:ring-2 focus:ring-grape text-base"
           style={inputStyle}/>
       </div>
@@ -55,7 +55,7 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = 'START PLAYING! �
       {/* Age */}
       <div className="mb-4">
         <label className="block text-xs font-bold text-ink/50 uppercase tracking-wide mb-1.5"
-          style={{fontFamily:'"Nunito",system-ui'}}>Age Range (optional)</label>
+          style={{fontFamily:'"Nunito",system-ui'}}>Rango de edad (opcional)</label>
         <div className="flex gap-2">
           {(['5-6','7-8','9+'] as const).map(a => (
             <button key={a} onClick={() => setAgeRange(a)}
@@ -95,7 +95,7 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = 'START PLAYING! �
       {/* Bug companion */}
       <div className="mb-5">
         <label className="block text-xs font-bold text-ink/50 uppercase tracking-wide mb-1.5"
-          style={{fontFamily:'"Nunito",system-ui'}}>Bug Companion</label>
+          style={{fontFamily:'"Nunito",system-ui'}}>Bicho compañero</label>
         <div className="grid grid-cols-3 gap-2">
           {COMPANIONS.map(c => (
             <button key={c.kind} onClick={() => setBugCompanion(c.kind)}
@@ -117,10 +117,10 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = 'START PLAYING! �
         <button onClick={onCancel}
           className="flex-1 py-3 rounded-2xl font-bold text-ink/60 text-base active:scale-95"
           style={{background:'#F0EEF6', fontFamily:'"Fredoka",system-ui'}}>
-          Cancel
+          Cancelar
         </button>
         <button onClick={() => {
-          if (!nickname.trim()) { setError('Give your kid a nickname!'); return; }
+          if (!nickname.trim()) { setError('¡Ponle un apodo a tu hijo/a!'); return; }
           onSave({ nickname: nickname.trim(), avatarId, bugCompanion, ageRange });
         }}
           className="flex-[2] py-3 rounded-2xl text-ink font-bold text-base active:scale-95"
@@ -152,15 +152,15 @@ function ResetConfirm({ childName, onConfirm, onCancel }: { childName: string; o
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-xs bg-white rounded-3xl p-6 text-center" style={{boxShadow:'0 20px 40px rgba(35,19,71,0.25)'}}>
         <div className="text-4xl mb-3">⚠️</div>
-        <h3 className="text-lg font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>Reset Progress?</h3>
+        <h3 className="text-lg font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>¿Restablecer progreso?</h3>
         <p className="text-sm text-ink/60 font-semibold mb-5 leading-relaxed" style={{fontFamily:'"Nunito",system-ui'}}>
-          This will erase all of {childName}'s stars, badges, and level progress. This cannot be undone.
+          Esto borrará todas las estrellas, medallas y el progreso de nivel de {childName}. Esto no se puede deshacer.
         </p>
         <div className="flex gap-2">
           <button onClick={onCancel} className="flex-1 py-3 rounded-2xl font-bold text-ink bg-gray-100 active:scale-95"
-            style={{fontFamily:'"Fredoka",system-ui'}}>Cancel</button>
+            style={{fontFamily:'"Fredoka",system-ui'}}>Cancelar</button>
           <button onClick={onConfirm} className="flex-1 py-3 rounded-2xl font-bold text-white bg-red-500 active:scale-95"
-            style={{fontFamily:'"Fredoka",system-ui', boxShadow:'0 4px 0 #B02020'}}>Reset</button>
+            style={{fontFamily:'"Fredoka",system-ui', boxShadow:'0 4px 0 #B02020'}}>Restablecer</button>
         </div>
       </div>
     </div>
@@ -206,12 +206,12 @@ export default function ChildSelector() {
         <div className="text-center mb-7">
           <div className="text-4xl mb-2">👨‍👩‍👧‍👦</div>
           <h2 className="text-3xl font-bold text-ink" style={{fontFamily:'"Fredoka",system-ui'}}>
-            {hasChildren ? "Who's playing?" : 'Welcome!'}
+            {hasChildren ? '¿Quién va a jugar?' : '¡Bienvenido/a!'}
           </h2>
           <p className="text-ink/55 text-sm font-semibold mt-1" style={{fontFamily:'"Nunito",system-ui'}}>
             {hasChildren
-              ? `Hi ${parent?.displayName}! Pick a profile to start.`
-              : `Hi ${parent?.displayName}! Create your first child profile to begin.`}
+              ? `¡Hola, ${parent?.displayName}! Elige un perfil para empezar.`
+              : `¡Hola, ${parent?.displayName}! Crea el primer perfil de tu hijo/a para comenzar.`}
           </p>
         </div>
 
@@ -221,9 +221,9 @@ export default function ChildSelector() {
             style={{background:'rgba(142,107,255,0.04)'}}>
             <div className="text-5xl">🐛</div>
             <div className="text-center">
-              <p className="font-bold text-ink text-lg" style={{fontFamily:'"Fredoka",system-ui'}}>No profiles yet</p>
+              <p className="font-bold text-ink text-lg" style={{fontFamily:'"Fredoka",system-ui'}}>No hay perfiles aún</p>
               <p className="text-sm text-ink/55 mt-1" style={{fontFamily:'"Nunito",system-ui'}}>
-                Add your first child to start the puzzle adventure!
+                ¡Añade a tu primer hijo/a para empezar la aventura de rompecabezas!
               </p>
             </div>
           </div>
@@ -249,11 +249,11 @@ export default function ChildSelector() {
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-sm">⭐</span>
                       <span className="text-xs font-bold text-ink/55" style={{fontFamily:'"Nunito",system-ui'}}>
-                        {child.totalStars} stars
+                        {child.totalStars} estrellas
                       </span>
                       <span className="text-ink/25 text-xs">·</span>
                       <span className="text-xs font-bold text-ink/55" style={{fontFamily:'"Nunito",system-ui'}}>
-                        Level {child.currentLevel}
+                        Nivel {child.currentLevel}
                       </span>
                     </div>
                   </div>
@@ -283,7 +283,7 @@ export default function ChildSelector() {
             background:'rgba(142,107,255,0.06)',
             border:'2px dashed rgba(142,107,255,0.3)',
           }}>
-          + Add Child Profile
+          + Añadir perfil de niño/a
         </button>
       </div>
 
@@ -291,28 +291,28 @@ export default function ChildSelector() {
       <div className="px-5 pb-8 flex justify-center">
         <button onClick={signOut} className="text-sm text-ink/35 font-bold underline"
           style={{fontFamily:'"Nunito",system-ui'}}>
-          Sign out ({parent?.email})
+          Cerrar sesión ({parent?.email})
         </button>
       </div>
 
       {/* Create modal */}
       {modal === 'create' && (
-        <BottomSheet title="New Child Profile 🐛" onClose={() => setModal(null)}>
+        <BottomSheet title="Nuevo perfil de niño/a 🐛" onClose={() => setModal(null)}>
           <ProfileForm onSave={handleCreate} onCancel={() => setModal(null)}/>
         </BottomSheet>
       )}
 
       {/* Options sheet */}
       {modal === 'options' && editTarget && (
-        <BottomSheet title={`${editTarget.nickname}'s Profile`} onClose={() => { setModal(null); setEditTarget(null); }}>
+        <BottomSheet title={`Perfil de ${editTarget.nickname}`} onClose={() => { setModal(null); setEditTarget(null); }}>
           <div className="flex flex-col gap-3">
             <button onClick={() => setModal('edit')}
               className="flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98"
               style={{background:'#F6F4FB', boxShadow:'0 2px 0 rgba(35,19,71,0.07)'}}>
               <span className="text-xl">✏️</span>
               <div>
-                <div className="font-bold text-ink text-sm" style={{fontFamily:'"Nunito",system-ui'}}>Edit Profile</div>
-                <div className="text-xs text-ink/50" style={{fontFamily:'"Nunito",system-ui'}}>Change nickname, avatar, or companion</div>
+                <div className="font-bold text-ink text-sm" style={{fontFamily:'"Nunito",system-ui'}}>Editar perfil</div>
+                <div className="text-xs text-ink/50" style={{fontFamily:'"Nunito",system-ui'}}>Cambia el apodo, avatar o compañero</div>
               </div>
             </button>
             <button onClick={() => setShowReset(true)}
@@ -320,8 +320,8 @@ export default function ChildSelector() {
               style={{background:'#FFF8F0', boxShadow:'0 2px 0 rgba(200,80,0,0.08)'}}>
               <span className="text-xl">🔄</span>
               <div>
-                <div className="font-bold text-orange-700 text-sm" style={{fontFamily:'"Nunito",system-ui'}}>Reset Progress</div>
-                <div className="text-xs text-orange-400" style={{fontFamily:'"Nunito",system-ui'}}>Clear all stars, badges, and levels</div>
+                <div className="font-bold text-orange-700 text-sm" style={{fontFamily:'"Nunito",system-ui'}}>Restablecer progreso</div>
+                <div className="text-xs text-orange-400" style={{fontFamily:'"Nunito",system-ui'}}>Borra todas las estrellas, medallas y niveles</div>
               </div>
             </button>
             <button onClick={handleDelete}
@@ -329,8 +329,8 @@ export default function ChildSelector() {
               style={{background:'#FFF0F0', boxShadow:'0 2px 0 rgba(200,0,0,0.07)'}}>
               <span className="text-xl">🗑️</span>
               <div>
-                <div className="font-bold text-red-600 text-sm" style={{fontFamily:'"Nunito",system-ui'}}>Delete Profile</div>
-                <div className="text-xs text-red-400" style={{fontFamily:'"Nunito",system-ui'}}>Remove this child permanently</div>
+                <div className="font-bold text-red-600 text-sm" style={{fontFamily:'"Nunito",system-ui'}}>Borrar perfil</div>
+                <div className="text-xs text-red-400" style={{fontFamily:'"Nunito",system-ui'}}>Elimina a este niño/a permanentemente</div>
               </div>
             </button>
           </div>
@@ -339,8 +339,8 @@ export default function ChildSelector() {
 
       {/* Edit modal */}
       {modal === 'edit' && editTarget && (
-        <BottomSheet title="Edit Profile ✏️" onClose={() => { setModal(null); setEditTarget(null); }}>
-          <ProfileForm initial={editTarget} onSave={handleEdit} onCancel={() => setModal('options')} saveLabel="Save Changes ✓"/>
+        <BottomSheet title="Editar perfil ✏️" onClose={() => { setModal(null); setEditTarget(null); }}>
+          <ProfileForm initial={editTarget} onSave={handleEdit} onCancel={() => setModal('options')} saveLabel="Guardar cambios ✓"/>
         </BottomSheet>
       )}
 

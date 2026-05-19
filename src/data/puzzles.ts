@@ -7,142 +7,142 @@ import { makePiece } from './characters';
 // ─── World 1: Meadow Path (easy) ──────────────────────────────
 // M1: 4×3=12. pip(3)+pip(3)+mo(4)+rose(2) = 12 ✓
 const p1: Puzzle = {
-  id:'meadow-1', name:'First Steps', description:'Fill the sunny meadow patch!',
+  id:'meadow-1', name:'Primeros Pasos', description:'¡Llena el soleado parche de la pradera!',
   worldId:'meadow', difficulty:'easy', cols:4, rows:3, blockedCells:[],
   pieces:[makePiece('pip','_a'), makePiece('pip','_b'), makePiece('mo','_a'), makePiece('rose','_a')],
-  hints:['Try the long green bug across the top row first.','The blue square fits snugly in a corner.','Rotate a piece with the button — it might fit!'],
+  hints:['Intenta colocar primero el bicho largo verde en la fila superior.', 'El cuadrado azul encaja perfectamente en una esquina.', '¡Rota una pieza con el botón si no cabe!'],
   maxMoves:8,
 };
 
 // M2: 5×3=15. mo(4)+zig(4)+pip(3)+rose(2)+rose(2) = 15 ✓
 const p2: Puzzle = {
-  id:'meadow-2', name:'Flower Field', description:'Help the bugs find their flower spots!',
+  id:'meadow-2', name:'Campo de Flores', description:'¡Ayuda a los bichitos a encontrar sus flores!',
   worldId:'meadow', difficulty:'easy', cols:5, rows:3, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('rose','_a'), makePiece('rose','_b')],
-  hints:['Start with the biggest pieces — they are hardest to fit later.','The S-shaped bug works well in the middle.','Two small bugs can fill the leftover gaps.'],
+  hints:['Empieza por las piezas más grandes, son las más difíciles de encajar después.', 'El bicho con forma de S funciona muy bien en el centro.', 'Dos bichitos pequeños pueden llenar los huecos restantes.'],
   maxMoves:10,
 };
 
 // M3: 4×4=16. mo(4)+mo(4)+pip(3)+bobo(3)+rose(2) = 16 ✓
 const p3: Puzzle = {
-  id:'meadow-3', name:'Meadow Maze', description:'A trickier patch to fill!',
+  id:'meadow-3', name:'Laberinto de la Pradera', description:'¡Un parche más difícil de llenar!',
   worldId:'meadow', difficulty:'easy', cols:4, rows:4, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['Two square bugs take up half the board — place them first.','Try the squares in opposite corners.','The L-shaped bug and the straight bug fill the last gap.'],
+  hints:['Dos bichos cuadrados ocupan la mitad del tablero; colócalos primero.', 'Intenta colocar los cuadrados en esquinas opuestas.', 'El bicho con forma de L y el bicho recto llenan el último hueco.'],
   maxMoves:10,
 };
 
 // M4: 5×4=20 blocked corners=[0,0][4,0][0,3][4,3] → 16. mo(4)+zig(4)+pip(3)+bobo(3)+rose(2)=16 ✓
 const p4: Puzzle = {
-  id:'meadow-4', name:'Corner Hop', description:'Watch out for the muddy corners!',
+  id:'meadow-4', name:'Salto de Esquina', description:'¡Cuidado con las esquinas embarradas!',
   worldId:'meadow', difficulty:'easy', cols:5, rows:4,
   blockedCells:[[0,0],[4,0],[0,3],[4,3]],
   pieces:[makePiece('mo','_a'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['The four corners are blocked — plan around them.','Work from the edges inward.','Try rotating Zig — both directions work in different spots.'],
+  hints:['Las cuatro esquinas están bloqueadas; planifica alrededor de ellas.', 'Trabaja desde los bordes hacia el centro.', 'Intenta rotar a Zig; ambas direcciones funcionan en diferentes lugares.'],
   maxMoves:12,
 };
 
 // M5: 6×3=18. mo(4)+mo(4)+pip(3)+pip(3)+rose(2)+rose(2) = 18 ✓
 const p5: Puzzle = {
-  id:'meadow-5', name:'Long Stretch', description:'Fill the whole meadow runway!',
+  id:'meadow-5', name:'Gran Extensión', description:'¡Llena toda la pista de la pradera!',
   worldId:'meadow', difficulty:'medium', cols:6, rows:3, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('pip','_a'), makePiece('pip','_b'), makePiece('rose','_a'), makePiece('rose','_b')],
-  hints:['The long board needs long pieces!','Two squares side by side cover the centre perfectly.','The tiny bugs fill the remaining ends.'],
+  hints:['¡El tablero largo necesita piezas largas!', 'Dos cuadrados lado a lado cubren el centro perfectamente.', 'Los bichitos diminutos llenan los extremos restantes.'],
   maxMoves:12,
 };
 
 // ─── World 2: Crystal Cave (medium) ──────────────────────────
 // C1: 5×4=20. mo(4)+mo(4)+zig(4)+pip(3)+coach(3)+rose(2) = 20 ✓
 const p6: Puzzle = {
-  id:'crystal-1', name:'Cave Entrance', description:'Crystals everywhere — step carefully!',
+  id:'crystal-1', name:'Entrada de la Cueva', description:'Cristales por todas partes, ¡camina con cuidado!',
   worldId:'crystal', difficulty:'medium', cols:5, rows:4, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('coach','_a'), makePiece('rose','_a')],
-  hints:['Six pieces for twenty cells — think one step ahead.','Try placing the S-shape horizontally first.','Coach fits perfectly in a tall column!'],
+  hints:['Seis piezas para veinte celdas; piensa un paso por delante.', 'Intenta colocar la forma de S horizontalmente primero.', '¡Coach encaja perfectamente en una columna alta!'],
   maxMoves:14,
 };
 
 // C2: 5×4=20 blocked [1,0][3,0][1,3][3,3] → 16. mo(4)+mo(4)+pip(3)+bobo(3)+rose(2)=16 ✓
 const p7: Puzzle = {
-  id:'crystal-2', name:'Crystal Grid', description:'The crystals block the path!',
+  id:'crystal-2', name:'Cuadrícula de Cristal', description:'¡Los cristales bloquean el camino!',
   worldId:'crystal', difficulty:'medium', cols:5, rows:4,
   blockedCells:[[1,0],[3,0],[1,3],[3,3]],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['Four crystals block the corners — use that to guide placement.','Square bugs work well in the open centre area.','The L-shape fills an awkward edge gap.'],
+  hints:['Cuatro cristales bloquean las esquinas; úsalos para guiar la colocación.', 'Los bichos cuadrados funcionan bien en la zona central abierta.', 'La forma de L llena un hueco incómodo en el borde.'],
   maxMoves:12,
 };
 
 // C3: 4×5=20. mo(4)+mo(4)+zig(4)+pip(3)+bobo(3)+rose(2) = 20 ✓
 const p8: Puzzle = {
-  id:'crystal-3', name:'Deep Cavern', description:'Go deeper into the crystal cave!',
+  id:'crystal-3', name:'Caverna Profunda', description:'¡Adéntrate más en la cueva de cristal!',
   worldId:'crystal', difficulty:'medium', cols:4, rows:5, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['A tall board! Think about vertical placements.','Rotating the straight bug vertically covers a full column.','The L-shapes fill the awkward corners nicely.'],
+  hints:['¡Un tablero alto! Piensa en colocaciones verticales.', 'Rotar el bicho recto verticalmente cubre una columna completa.', 'Las formas de L llenan muy bien las esquinas difíciles.'],
   maxMoves:14,
 };
 
 // C4: 6×4=24. mo(4)×3+zig(4)+pip(3)+bobo(3)+rose(2) = 24 ✓
 const p9: Puzzle = {
-  id:'crystal-4', name:'Gem Chamber', description:'The biggest crystal chamber yet!',
+  id:'crystal-4', name:'Cámara de Gemas', description:'¡La cámara de cristal más grande hasta ahora!',
   worldId:'crystal', difficulty:'medium', cols:6, rows:4, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('mo','_c'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['Seven pieces! Start with the three squares.','Three squares in a row cover twelve cells perfectly.','The S-shape and L-shape cover the remaining area.'],
+  hints:['¡Siete piezas! Comienza con los tres cuadrados.', 'Tres cuadrados en fila cubren doce celdas perfectamente.', 'La forma de S y la forma de L cubren el área restante.'],
   maxMoves:16,
 };
 
 // C5: 5×4=20 blocked [0,0][4,0][0,3][4,3] → 16. mo(4)+zig(4)+pip(3)+bobo(3)+rose(2) = 16 ✓
 const p10: Puzzle = {
-  id:'crystal-5', name:'Crystal Heart', description:'Find the hidden pattern in the crystals!',
+  id:'crystal-5', name:'Corazón de Cristal', description:'¡Encuentra el patrón oculto en los cristales!',
   worldId:'crystal', difficulty:'hard', cols:5, rows:4,
   blockedCells:[[0,0],[4,0],[0,3],[4,3]],
   pieces:[makePiece('mo','_a'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['Corners blocked again — the centre needs careful planning.','Try placing the S-shape near the top row.','The L-shape fills the awkward spots near the corners.'],
+  hints:['Esquinas bloqueadas de nuevo; el centro necesita una planificación cuidadosa.', 'Intenta colocar la forma de S cerca de la fila superior.', 'La forma de L llena los lugares incómodos cerca de las esquinas.'],
   maxMoves:14,
 };
 
 // ─── World 3: Robo Reef (hard) ────────────────────────────────
 // R1: 6×4=24. mo+mo+zig+zig+pip+bobo+rose = 4+4+4+4+3+3+2 = 24 ✓
 const p11: Puzzle = {
-  id:'robo-1', name:'Reef Entry', description:'Welcome to the glowing Robo Reef!',
+  id:'robo-1', name:'Entrada al Arrecife', description:'¡Bienvenidos al brillante Arrecife Robot!',
   worldId:'robo', difficulty:'hard', cols:6, rows:4, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['Two S-shapes tile beautifully in a 4×2 area.','Fill one half of the reef, then the other.','Look for where the L-shape can fill a tricky corner.'],
+  hints:['Dos formas de S encajan perfectamente en un área de 4×2.', 'Llena una mitad del arrecife y luego la otra.', 'Busca dónde la forma de L puede llenar una esquina difícil.'],
   maxMoves:16,
 };
 
 // R2: 4×6=24. mo+mo+zig+zig+pip+bobo+rose = 24 ✓
 const p12: Puzzle = {
-  id:'robo-2', name:'Coral Tower', description:'Build the coral tower high!',
+  id:'robo-2', name:'Torre de Coral', description:'¡Construye la torre de coral bien alta!',
   worldId:'robo', difficulty:'hard', cols:4, rows:6, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
-  hints:['A tall tower — think about stacking, not spreading.','Rotating pieces vertically is the key here.','Start from the bottom and build upwards.'],
+  hints:['Una torre alta: piensa en apilar, no en extender.', 'Rotar las piezas verticalmente es la clave aquí.', 'Comienza desde abajo y construye hacia arriba.'],
   maxMoves:16,
 };
 
 // R3: 5×5=25. mo+mo+zig+pip+pip+bobo+rose+rose = 4+4+4+3+3+3+2+2 = 25 ✓
 const p13: Puzzle = {
-  id:'robo-3', name:'Bubble Grid', description:'Fill the perfect 5×5 bubble grid!',
+  id:'robo-3', name:'Cuadrícula de Burbujas', description:'¡Llena la cuadrícula de burbujas perfecta de 5×5!',
   worldId:'robo', difficulty:'hard', cols:5, rows:5, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('pip','_b'), makePiece('bobo','_a'), makePiece('rose','_a'), makePiece('rose','_b')],
-  hints:['Eight pieces for a 5×5! Take it section by section.','The two straight bugs cover a full column when vertical.','Small bugs are useful for filling leftover gaps.'],
+  hints:['¡Ocho piezas para un 5×5! Ve sección por sección.', 'Los dos bichos rectos cubren una columna completa cuando están verticales.', 'Los bichitos pequeños son útiles para llenar los huecos restantes.'],
   maxMoves:20,
 };
 
 // R4: 5×4=20 blocked [2,1][2,2] → 18. mo+mo+zig+pip+bobo = 4+4+4+3+3 = 18 ✓
 const p14: Puzzle = {
-  id:'robo-4', name:'Robot Core', description:"Work around the robot's core unit!",
+  id:'robo-4', name:'Núcleo de Robot', description:'¡Trabaja alrededor del núcleo del robot!',
   worldId:'robo', difficulty:'hard', cols:5, rows:4,
   blockedCells:[[2,1],[2,2]],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a')],
-  hints:['The blocked centre splits the board — treat each side separately.','Two squares, one on each side of the gap, anchor the layout.','The S-shape bridges the gap area beautifully.'],
+  hints:['El centro bloqueado divide el tablero; trata cada lado por separado.', 'Dos cuadrados, uno a cada lado del hueco, anclan el diseño.', 'La forma de S conecta el área del hueco de manera excelente.'],
   maxMoves:14,
 };
 
 // R5: 6×4=24. mo+mo+zig+pip+pip+bobo+coach = 4+4+4+3+3+3+3 = 24 ✓
 const p15: Puzzle = {
-  id:'robo-5', name:'Final Circuit', description:'The ultimate Robo Reef challenge!',
+  id:'robo-5', name:'Circuito Final', description:'¡El último desafío del Arrecife Robot!',
   worldId:'robo', difficulty:'hard', cols:6, rows:4, blockedCells:[],
   pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('pip','_b'), makePiece('bobo','_a'), makePiece('coach','_a')],
-  hints:['Your final puzzle — use every skill you have learned.','Mix vertical and horizontal placements for maximum coverage.','Three straight bugs placed vertically cover an entire 3×3 area!'],
+  hints:['Tu último rompecabezas: usa cada habilidad que hayas aprendido.', 'Mezcla colocaciones verticales y horizontales para una cobertura máxima.', '¡Tres bichos rectos colocados verticalmente cubren un área completa de 3×3!'],
   maxMoves:18,
 };
 

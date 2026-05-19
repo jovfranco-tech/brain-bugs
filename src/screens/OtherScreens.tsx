@@ -68,12 +68,12 @@ export function VictoryScreen() {
   };
 
   const levelLabel = levelId
-    .replace('meadow-l','Meadow Level ')
-    .replace('crystal-l','Cave Level ')
-    .replace('robo-l','Reef Level ');
+    .replace('meadow-l','Nivel Pradera ')
+    .replace('crystal-l','Nivel Cueva ')
+    .replace('robo-l','Nivel Arrecife ');
 
-  const msgMap = { 3:'🎉 Perfect! Amazing thinking!', 2:'⭐ Great work! Almost perfect!', 1:'✅ Solved! Keep practicing!' };
-  const headline = msgMap[stars as 1|2|3] ?? 'You did it!';
+  const msgMap = { 3:'🎉 ¡Perfecto! ¡Qué gran mente!', 2:'⭐ ¡Excelente trabajo! ¡Casi perfecto!', 1:'✅ ¡Resuelto! ¡Sigue practicando!' };
+  const headline = msgMap[stars as 1|2|3] ?? '¡Lo lograste!';
   const bgColor  = stars===3 ? 'linear-gradient(180deg,#5A3BD1,#3A2A9A,#251A6B)' : 'linear-gradient(180deg,#2B1A6A,#1C1148,#110A30)';
   const hexFill  = stars===3 ? '#FFD55E' : stars===2 ? '#5BC5FF' : '#3FD09E';
   const hexDark  = stars===3 ? '#B97808' : stars===2 ? '#2890D0' : '#1F9A6E';
@@ -102,7 +102,7 @@ export function VictoryScreen() {
           {headline}
         </div>
         <div className="text-yellow-200/80 text-sm font-semibold mb-6" style={{fontFamily:'"Nunito",system-ui'}}>
-          {levelLabel} complete!
+          ¡{levelLabel} completado!
         </div>
 
         {/* Hex badge with bug */}
@@ -135,9 +135,9 @@ export function VictoryScreen() {
         {/* Stats row */}
         <div className="w-full flex gap-3 mb-5">
           {[
-            { label:'Moves Used', value:moves, icon:'👣', good: moves<=12 },
-            { label:'Hints Used', value:hintsUsed, icon:'💡', good: hintsUsed===0 },
-            { label:'Stars',      value:stars,   icon:'⭐', good: stars===3 },
+            { label:'Movimientos', value:moves, icon:'👣', good: moves<=12 },
+            { label:'Pistas usadas', value:hintsUsed, icon:'💡', good: hintsUsed===0 },
+            { label:'Estrellas',      value:stars,   icon:'⭐', good: stars===3 },
           ].map(s => (
             <div key={s.label} className="flex-1 rounded-2xl p-3 text-center"
               style={{background:s.good?'rgba(63,208,158,0.18)':'rgba(255,255,255,0.1)',
@@ -153,7 +153,7 @@ export function VictoryScreen() {
         {newBadges.length > 0 && (
           <div className="w-full p-4 rounded-2xl mb-5" style={{background:'rgba(255,200,61,0.12)',border:'1px solid rgba(255,200,61,0.28)'}}>
             <div className="text-xs font-bold uppercase tracking-widest text-yellow-300 mb-3" style={{fontFamily:'"Nunito",system-ui'}}>
-              🏆 New Badge{newBadges.length>1?'s':''} Unlocked!
+              🏆 ¡Nueva medalla desbloqueada!
             </div>
             {newBadges.map(bid => {
               const b = BADGE_MAP[bid];
@@ -175,7 +175,7 @@ export function VictoryScreen() {
         {stars < 3 && (
           <div className="w-full p-3 rounded-2xl mb-5 text-center" style={{background:'rgba(255,255,255,0.07)'}}>
             <p className="text-white/70 text-xs font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>
-              💡 Replay this level using fewer moves to earn 3 stars!
+              💡 ¡Vuelve a jugar este nivel usando menos movimientos para ganar 3 estrellas!
             </p>
           </div>
         )}
@@ -189,12 +189,12 @@ export function VictoryScreen() {
               fontFamily:'"Fredoka",system-ui', color:'#231347',
               boxShadow:'0 7px 0 #B97808', letterSpacing:1,
             }}>
-            NEXT LEVEL →
+            SIGUIENTE NIVEL →
           </button>
           <button onClick={() => navigate('world-map')}
             className="w-full py-3 rounded-2xl font-bold active:scale-95 text-sm"
             style={{background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.75)', fontFamily:'"Fredoka",system-ui'}}>
-            Back to Map
+            Volver al mapa
           </button>
         </div>
       </div>
@@ -230,7 +230,7 @@ export function RewardsScreen() {
           </svg>
         </button>
         <div className="font-bold text-white text-lg uppercase tracking-widest" style={{fontFamily:'"Fredoka",system-ui'}}>
-          Badges & Rewards
+          Medallas y Recompensas
         </div>
         <div className="w-10"/>
       </div>
@@ -238,7 +238,7 @@ export function RewardsScreen() {
       {/* XP bar */}
       <div className="mx-4 mb-3 p-4 rounded-2xl flex-shrink-0" style={{background:'rgba(255,255,255,0.1)'}}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-bold text-sm" style={{fontFamily:'"Fredoka",system-ui'}}>Level {level}</span>
+          <span className="text-white font-bold text-sm" style={{fontFamily:'"Fredoka",system-ui'}}>Nivel {level}</span>
           <span className="text-white/60 text-xs font-bold" style={{fontFamily:'"Nunito",system-ui'}}>{xp % xpToNextLevel}/{xpToNextLevel} XP</span>
         </div>
         <div className="h-3 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.15)'}}>
@@ -250,9 +250,9 @@ export function RewardsScreen() {
       {/* Stats row */}
       <div className="flex gap-2 px-4 mb-4 flex-shrink-0">
         {[
-          { label:'Stars',   value:totalStars,       icon:'⭐' },
-          { label:'Puzzles', value:puzzlesSolved,     icon:'🧩' },
-          { label:'Badges',  value:progress.badges.length, icon:'🏆' },
+          { label:'Estrellas',   value:totalStars,       icon:'⭐' },
+          { label:'Rompecabezas', value:puzzlesSolved,     icon:'🧩' },
+          { label:'Medallas',  value:progress.badges.length, icon:'🏆' },
         ].map(s => (
           <div key={s.label} className="flex-1 rounded-2xl p-3 text-center" style={{background:'rgba(255,255,255,0.1)'}}>
             <div className="text-xl mb-0.5">{s.icon}</div>
@@ -265,7 +265,7 @@ export function RewardsScreen() {
       {/* Badge grid */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-4">
         <p className="text-white/45 text-xs font-bold uppercase tracking-widest mb-3" style={{fontFamily:'"Nunito",system-ui'}}>
-          Collection ({progress.badges.length}/{BADGES.length})
+          Colección ({progress.badges.length}/{BADGES.length})
         </p>
         <div className="grid grid-cols-3 gap-3">
           {BADGES.map(badge => {
@@ -307,7 +307,7 @@ export function RewardsScreen() {
             <button onClick={()=>setSelectedBadge(null)}
               className="w-full py-3 rounded-2xl font-bold text-white"
               style={{background:selected.color, fontFamily:'"Fredoka",system-ui', boxShadow:`0 4px 0 ${selected.darkColor}`}}>
-              Nice! 🎉
+              ¡Genial! 🎉
             </button>
           </div>
         </div>
@@ -334,10 +334,10 @@ export function ParentDashboard() {
   const [confirmReset, setConfirmReset] = useState(false);
 
   const skills = [
-    {label:'Logical Thinking', value:Math.min(100, puzzlesSolved*9+totalStars*2), color:'#8E6BFF'},
-    {label:'Problem Solving',  value:Math.min(100, puzzlesSolved*7+totalStars*3), color:'#3FD09E'},
-    {label:'Spatial Awareness',value:Math.min(100, puzzlesSolved*8+totalStars*2), color:'#FF7B5C'},
-    {label:'Persistence',      value:Math.min(100, (progress?.badges.length??0)*14+puzzlesSolved*5), color:'#FFC83D'},
+    {label:'Pensamiento lógico', value:Math.min(100, puzzlesSolved*9+totalStars*2), color:'#8E6BFF'},
+    {label:'Resolución de problemas',  value:Math.min(100, puzzlesSolved*7+totalStars*3), color:'#3FD09E'},
+    {label:'Conciencia espacial',value:Math.min(100, puzzlesSolved*8+totalStars*2), color:'#FF7B5C'},
+    {label:'Persistencia',      value:Math.min(100, (progress?.badges.length??0)*14+puzzlesSolved*5), color:'#FFC83D'},
   ];
 
   const AVATAR_MAP: Record<string, { bg: string; emoji: string }> = {
@@ -358,7 +358,7 @@ export function ParentDashboard() {
           </svg>
         </button>
         <div style={{fontFamily:'"Fredoka",system-ui'}} className="font-bold text-ink text-base uppercase tracking-widest">
-          Parent Dashboard
+          Panel de Padres
         </div>
         <button onClick={()=>navigate('settings')}
           className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
@@ -390,6 +390,8 @@ export function ParentDashboard() {
 
         {child && (() => {
           const av = AVATAR_MAP[child.avatarId] ?? AVATAR_MAP.buzzy;
+          const worldLabelMap = { meadow: 'Pradera', crystal: 'Cueva', robo: 'Arrecife' };
+          const worldLabel = worldLabelMap[child.currentWorld as 'meadow'|'crystal'|'robo'] || child.currentWorld;
           return (
             <div className="mt-3 p-4 rounded-2xl bg-white flex items-center gap-4"
               style={{boxShadow:'0 4px 0 rgba(35,19,71,0.08)'}}>
@@ -400,7 +402,7 @@ export function ParentDashboard() {
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-ink text-xl" style={{fontFamily:'"Fredoka",system-ui'}}>{child.nickname}</div>
                 <div className="text-xs text-ink/50 font-semibold mb-2" style={{fontFamily:'"Nunito",system-ui'}}>
-                  Level {child.currentLevel} · {child.currentWorld} world
+                  Nivel {child.currentLevel} · Mundo {worldLabel}
                 </div>
                 <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
                   <div className="h-full rounded-full"
@@ -415,15 +417,15 @@ export function ParentDashboard() {
         })()}
 
         {/* Key metrics */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Summary</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Resumen</p>
         <div className="grid grid-cols-2 gap-2">
           {[
-            {icon:'⭐', label:'Stars Earned',    value:totalStars,    color:'#FFC83D', dark:'#B97808'},
-            {icon:'🧩', label:'Puzzles Solved',  value:puzzlesSolved, color:'#3FD09E', dark:'#1F9A6E'},
-            {icon:'👣', label:'Avg. Moves',      value:avgMoves||'—', color:'#8E6BFF', dark:'#5A3BD1'},
-            {icon:'💡', label:'Hints Used',      value:totalHints,    color:'#FF7B5C', dark:'#C73000'},
-            {icon:'🏆', label:'Badges Earned',  value:progress?.badges.length??0, color:'#FF6FA8', dark:'#C73C77'},
-            {icon:'🌍', label:'Worlds Visited', value:['meadow','crystal','robo'].filter(w=>
+            {icon:'⭐', label:'Estrellas ganadas',    value:totalStars,    color:'#FFC83D', dark:'#B97808'},
+            {icon:'🧩', label:'Resueltos',  value:puzzlesSolved, color:'#3FD09E', dark:'#1F9A6E'},
+            {icon:'👣', label:'Movimientos prom.',      value:avgMoves||'—', color:'#8E6BFF', dark:'#5A3BD1'},
+            {icon:'💡', label:'Pistas usadas',      value:totalHints,    color:'#FF7B5C', dark:'#C73000'},
+            {icon:'🏆', label:'Medallas ganadas',  value:progress?.badges.length??0, color:'#FF6FA8', dark:'#C73C77'},
+            {icon:'🌍', label:'Mundos visitados', value:['meadow','crystal','robo'].filter(w=>
               Object.keys(progress?.levelProgress??{}).some(l=>l.startsWith(w))).length, color:'#5BC5FF', dark:'#2890D0'},
           ].map(m => (
             <div key={m.label} className="rounded-2xl p-3.5 bg-white flex items-center gap-3"
@@ -441,7 +443,7 @@ export function ParentDashboard() {
         </div>
 
         {/* Skills */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Skills in Focus</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Habilidades en enfoque</p>
         <div className="bg-white rounded-2xl p-4 space-y-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
           {skills.map(s => (
             <div key={s.label}>
@@ -457,7 +459,7 @@ export function ParentDashboard() {
           ))}
           {puzzlesSolved === 0 && (
             <p className="text-xs text-ink/35 italic text-center" style={{fontFamily:'"Nunito",system-ui'}}>
-              Skills build up as puzzles are solved!
+              ¡Las habilidades crecen a medida que se resuelven rompecabezas!
             </p>
           )}
         </div>
@@ -465,7 +467,7 @@ export function ParentDashboard() {
         {/* Recent activity */}
         {progress && Object.keys(progress.levelProgress).length > 0 && (
           <>
-            <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Recent Activity</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Actividad reciente</p>
             <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
               {Object.entries(progress.levelProgress).slice(-5).reverse().map(([lid,lp],i,arr) => (
                 <div key={lid} className="flex items-center gap-3 px-4 py-3"
@@ -473,7 +475,7 @@ export function ParentDashboard() {
                   <span className="text-2xl">{lid.includes('meadow')?'🌿':lid.includes('crystal')?'💎':'🤖'}</span>
                   <div className="flex-1">
                     <div className="text-sm font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>
-                      {lid.replace('meadow-l','Meadow L').replace('crystal-l','Cave L').replace('robo-l','Reef L')}
+                      {lid.replace('meadow-l','Pradera ').replace('crystal-l','Cueva ').replace('robo-l','Arrecife ')}
                     </div>
                     <StarRating stars={lp.stars} size={12}/>
                   </div>
@@ -487,13 +489,13 @@ export function ParentDashboard() {
         )}
 
         {/* Parent tools */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Parent Tools</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Herramientas de padres</p>
         <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
           {[
-            {icon:'👥', label:'Manage Profiles',  sub:'Add, edit, or remove child profiles', action:()=>navigate('child-select')},
-            {icon:'🔄', label:'Reset Progress',    sub:'Clear all stars and badges for this child', action:()=>setConfirmReset(true), danger:true},
-            {icon:'⏱',  label:'Screen Time',       sub:'Coming in next update', action:()=>{}, disabled:true},
-            {icon:'🔒', label:'Safety & Privacy',  sub:'View child data policy', action:()=>navigate('settings')},
+            {icon:'👥', label:'Gestionar perfiles',  sub:'Añade, edita o elimina perfiles de niños', action:()=>navigate('child-select')},
+            {icon:'🔄', label:'Restablecer progreso',    sub:'Borra todas las estrellas y medallas de este perfil', action:()=>setConfirmReset(true), danger:true},
+            {icon:'⏱',  label:'Tiempo en pantalla',       sub:'Próximamente en la siguiente actualización', action:()=>{}, disabled:true},
+            {icon:'🔒', label:'Seguridad y privacidad',  sub:'Ver política de datos infantiles', action:()=>navigate('settings')},
           ].map((t,i,arr) => (
             <button key={t.label} onClick={t.action} disabled={t.disabled}
               className="flex items-center gap-3 w-full px-4 py-3.5 text-left transition-colors"
@@ -518,14 +520,14 @@ export function ParentDashboard() {
         {/* Safety note */}
         <div className="mt-4 p-4 rounded-2xl" style={{background:'rgba(63,208,158,0.08)', border:'1px solid rgba(63,208,158,0.2)'}}>
           <p className="text-xs font-semibold text-mint-dark leading-relaxed" style={{fontFamily:'"Nunito",system-ui', color:'#1F7A5A'}}>
-            🔒 Brain Bugs collects minimal child data — only a nickname, avatar, and optional age range. No email or personal info is required from children. All content is hand-crafted for ages 5–9.
+            🔒 BRAIN BUGS recopila datos mínimos de los niños: solo un apodo, avatar y rango de edad opcional. No se requiere correo electrónico ni información personal de los niños. Todo el contenido está diseñado especialmente para edades de 5 a 9 años.
           </p>
         </div>
 
         <button onClick={signOut}
           className="w-full mt-4 py-3 rounded-2xl font-bold text-center text-red-500"
           style={{fontFamily:'"Fredoka",system-ui', background:'#FFF0F0', boxShadow:'0 3px 0 rgba(200,0,0,0.07)'}}>
-          Sign Out
+          Cerrar sesión
         </button>
         <div className="h-6"/>
       </div>
@@ -535,17 +537,17 @@ export function ParentDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/55">
           <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center">
             <div className="text-4xl mb-3">⚠️</div>
-            <h3 className="text-lg font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>Reset {child.nickname}?</h3>
+            <h3 className="text-lg font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>¿Restablecer a {child.nickname}?</h3>
             <p className="text-sm text-ink/60 font-semibold mb-5" style={{fontFamily:'"Nunito",system-ui'}}>
-              All stars, badges, and level progress will be permanently cleared.
+              Todas las estrellas, medallas y el progreso de nivel se borrarán permanentemente.
             </p>
             <div className="flex gap-2">
               <button onClick={()=>setConfirmReset(false)}
                 className="flex-1 py-3 rounded-2xl font-bold bg-gray-100 text-ink active:scale-95"
-                style={{fontFamily:'"Fredoka",system-ui'}}>Cancel</button>
+                style={{fontFamily:'"Fredoka",system-ui'}}>Cancelar</button>
               <button onClick={()=>{ resetChildProgress(child.id); setConfirmReset(false); }}
                 className="flex-1 py-3 rounded-2xl font-bold text-white bg-red-500 active:scale-95"
-                style={{fontFamily:'"Fredoka",system-ui', boxShadow:'0 4px 0 #B02020'}}>Reset</button>
+                style={{fontFamily:'"Fredoka",system-ui', boxShadow:'0 4px 0 #B02020'}}>Restablecer</button>
             </div>
           </div>
         </div>
@@ -569,42 +571,42 @@ export function SettingsScreen() {
             <path d="M15 6l-6 6 6 6" stroke="#231347" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </button>
-        <div style={{fontFamily:'"Fredoka",system-ui'}} className="font-bold text-ink text-base uppercase tracking-widest">Settings</div>
+        <div style={{fontFamily:'"Fredoka",system-ui'}} className="font-bold text-ink text-base uppercase tracking-widest">Ajustes</div>
         <div className="w-10"/>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-5 space-y-4">
         <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
-          <p className="font-bold text-ink mb-0.5" style={{fontFamily:'"Fredoka",system-ui'}}>👤 Account</p>
+          <p className="font-bold text-ink mb-0.5" style={{fontFamily:'"Fredoka",system-ui'}}>👤 Cuenta</p>
           <p className="text-sm font-bold text-ink/60" style={{fontFamily:'"Nunito",system-ui'}}>{parent?.displayName}</p>
           <p className="text-xs text-ink/35 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>{parent?.email}</p>
         </div>
 
         <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
-          <p className="font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>🔒 Child Safety & Privacy</p>
+          <p className="font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>🔒 Seguridad y Privacidad Infantil</p>
           <p className="text-sm text-ink/55 font-semibold leading-relaxed" style={{fontFamily:'"Nunito",system-ui'}}>
-            Brain Bugs is designed with child privacy first. Child profiles require only a nickname, avatar, and optional age range. No email addresses, phone numbers, or personal information are collected from children.
+            BRAIN BUGS está diseñado con la privacidad infantil como prioridad. Los perfiles de niños requieren únicamente un apodo, avatar y rango de edad opcional. No se recopilan correos electrónicos, números de teléfono ni información personal de los niños.
           </p>
           <p className="text-sm text-ink/55 font-semibold leading-relaxed mt-2" style={{fontFamily:'"Nunito",system-ui'}}>
-            All puzzle content is hand-crafted and reviewed for age-appropriateness (ages 5–9). There are no ads, no in-app purchases, and no third-party data sharing.
+            Todo el contenido de los rompecabezas está diseñado a mano y revisado para que sea apropiado según la edad (de 5 a 9 años). No contiene anuncios, compras dentro de la aplicación ni intercambio de datos con terceros.
           </p>
           <div className="mt-3 p-3 rounded-xl" style={{background:'rgba(63,208,158,0.08)', border:'1px solid rgba(63,208,158,0.2)'}}>
             <p className="text-xs font-bold" style={{color:'#1F7A5A', fontFamily:'"Nunito",system-ui'}}>
-              ✓ COPPA-friendly design · ✓ No child PII · ✓ No third-party trackers
+              ✓ Diseño compatible con COPPA · ✓ Sin información personal infantil · ✓ Sin rastreadores de terceros
             </p>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
-          <p className="font-bold text-ink mb-1" style={{fontFamily:'"Fredoka",system-ui'}}>ℹ️ About Brain Bugs</p>
-          <p className="text-sm text-ink/55 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>Version 1.1.0 · Think. Connect. Solve. Grow!</p>
-          <p className="text-xs text-ink/35 mt-1" style={{fontFamily:'"Nunito",system-ui'}}>MVP — Bug Coach is deterministic, not live AI. Auth uses localStorage unless Supabase is configured.</p>
+          <p className="font-bold text-ink mb-1" style={{fontFamily:'"Fredoka",system-ui'}}>ℹ️ Acerca de BRAIN BUGS</p>
+          <p className="text-sm text-ink/55 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>Versión 1.1.0 · ¡Piensa. Conecta. Resuelve. Crece!</p>
+          <p className="text-xs text-ink/35 mt-1" style={{fontFamily:'"Nunito",system-ui'}}>MVP — El Bug Coach es determinista, no es IA en vivo. La autenticación usa localStorage a menos que Supabase esté configurado.</p>
         </div>
 
         <button onClick={signOut}
           className="w-full py-4 rounded-2xl font-bold text-center text-red-500"
           style={{fontFamily:'"Fredoka",system-ui', background:'#FFF0F0', boxShadow:'0 3px 0 rgba(200,0,0,0.07)'}}>
-          Sign Out
+          Cerrar sesión
         </button>
       </div>
       <BottomNav/>

@@ -52,12 +52,12 @@ export default function Landing() {
         <BrainBugsLogo size={34} stacked/>
         <p className="mt-3 text-ink/65 text-base font-semibold tracking-wide"
           style={{fontFamily:'"Fredoka",system-ui'}}>
-          Think · Connect · Solve · Grow!
+          ¡Piensa · Conecta · Resuelve · Crece!
         </p>
         <div className="mt-2 px-4 py-1.5 rounded-full"
           style={{background:'rgba(255,255,255,0.55)', backdropFilter:'blur(6px)'}}>
           <p className="text-xs font-bold text-ink/60" style={{fontFamily:'"Nunito",system-ui'}}>
-            Spatial puzzles · Ages 5–9 · Parent-safe
+            Rompecabezas espaciales · De 5 a 9 años · Seguro para niños
           </p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function Landing() {
             textShadow:'0 2px 0 rgba(0,0,0,0.14)',
             letterSpacing:2,
           }}>
-          GET STARTED
+          ¡EMPEZAR!
         </button>
 
         <button
@@ -85,11 +85,11 @@ export default function Landing() {
             fontFamily:'"Fredoka",system-ui', color:'#231347',
             boxShadow:'0 6px 0 rgba(35,19,71,0.12)',
           }}>
-          I already have an account
+          Ya tengo una cuenta
         </button>
 
         <p className="text-center text-xs text-ink/40 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>
-          Parent account required · No ads · No tracking
+          Requiere cuenta de padres · Sin anuncios · Sin rastreo
         </p>
       </div>
     </div>

@@ -6,7 +6,7 @@ interface TabItem { screen: Screen; label: string; icon: React.ReactNode; }
 
 const TABS: TabItem[] = [
   {
-    screen: 'world-map', label: 'Play',
+    screen: 'world-map', label: 'Jugar',
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="10" fill="#FFC83D"/>
@@ -15,7 +15,7 @@ const TABS: TabItem[] = [
     ),
   },
   {
-    screen: 'home', label: 'Home',
+    screen: 'home', label: 'Inicio',
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9"
@@ -24,7 +24,7 @@ const TABS: TabItem[] = [
     ),
   },
   {
-    screen: 'rewards', label: 'Badges',
+    screen: 'rewards', label: 'Medallas',
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M12 2l2.4 4.9L20 8l-4 3.9.9 5.5L12 14.8 7.1 17.4 8 11.9 4 8l5.6-1.1z"
@@ -33,7 +33,7 @@ const TABS: TabItem[] = [
     ),
   },
   {
-    screen: 'parent-dashboard', label: 'Parent',
+    screen: 'parent-dashboard', label: 'Padres',
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#231347" strokeWidth="2" strokeLinecap="round"/>

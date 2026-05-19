@@ -103,7 +103,7 @@ export default function HomeScreen() {
         <div className="flex flex-col items-center mt-2 mb-1">
           <BrainBugsLogo size={28} stacked/>
           <p className="text-ink/55 text-sm font-medium mt-1.5" style={{fontFamily:'"Fredoka",system-ui', letterSpacing:0.4}}>
-            Think · Connect · Solve · Grow!
+            ¡Piensa · Conecta · Resuelve · Crece!
           </p>
         </div>
 
@@ -122,9 +122,9 @@ export default function HomeScreen() {
         {puzzlesSolved > 0 && (
           <div className="flex justify-center gap-4 mb-1 mt-2">
             {[
-              {label:'Puzzles', value:puzzlesSolved},
-              {label:'Stars', value:totalStars},
-              {label:'Badges', value:progress.badges.length},
+              {label:'Rompecabezas', value:puzzlesSolved},
+              {label:'Estrellas', value:totalStars},
+              {label:'Medallas', value:progress.badges.length},
             ].map(s => (
               <div key={s.label} className="text-center">
                 <div className="font-bold text-ink/80 text-lg" style={{fontFamily:'"Fredoka",system-ui'}}>{s.value}</div>
@@ -146,13 +146,13 @@ export default function HomeScreen() {
               textShadow:'0 2px 0 rgba(0,0,0,0.16)', color:'#231347',
             }}>
             <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" fill="#231347"/></svg>
-            PLAY
+            ¡JUGAR!
           </button>
 
           <div className="grid grid-cols-2 gap-2.5">
-            <NavPill label="World Map" sub="3 worlds · 15 levels" color="#5BC5FF" onClick={() => navigate('world-map')}
+            <NavPill label="Mapa del Mundo" sub="3 mundos · 15 niveles" color="#5BC5FF" onClick={() => navigate('world-map')}
               icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#fff" opacity="0.9"/><path d="M3 12h18M12 3a14 14 0 010 18" stroke="#2890D0" strokeWidth="1.8"/></svg>}/>
-            <NavPill label="Rewards" sub={`${progress.badges.length} badges`} color="#FFC83D" onClick={() => navigate('rewards')}
+            <NavPill label="Medallas" sub={`${progress.badges.length} medallas`} color="#FFC83D" onClick={() => navigate('rewards')}
               icon={<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l2.4 4.9L20 8l-4 3.9.9 5.5L12 14.8 7.1 17.4 8 11.9 4 8l5.6-1.1z" fill="#fff"/></svg>}/>
           </div>
         </div>
