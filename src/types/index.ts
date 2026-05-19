@@ -1,7 +1,7 @@
 // ─── Core primitive types ─────────────────────────────────────
 export type BugKind  = 'pip' | 'bobo' | 'zig' | 'mo' | 'rose' | 'coach';
 export type AvatarId = 'buzzy' | 'pip' | 'bobo' | 'zig' | 'mo' | 'rose';
-export type WorldId  = 'meadow' | 'crystal' | 'robo';
+export type WorldId  = 'meadow' | 'crystal' | 'robo' | 'ocean' | 'volcano' | 'space';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 // ─── Auth ─────────────────────────────────────────────────────
@@ -68,6 +68,7 @@ export interface Puzzle {
   cols: number;
   rows: number;
   blockedCells: [number, number][]; // [col, row]
+  bugLocks?: [number, number, BugKind][]; // Optional: [col, row, bugKind] lock
   pieces: PuzzlePiece[];
   hints: string[];
   maxMoves: number;
@@ -89,6 +90,7 @@ export interface BoardCell {
   row: number;
   blocked: boolean;
   pieceId: string | null;
+  bugLock?: BugKind;
 }
 
 export interface Placement {

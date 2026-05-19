@@ -152,4 +152,102 @@ export const PUZZLES: Record<string, Puzzle> = {
   'robo-1':p11, 'robo-2':p12, 'robo-3':p13, 'robo-4':p14, 'robo-5':p15,
 };
 
+// ─── World 4: Mysterious Ocean (medium/hard) ───────────────────
+const po1: Puzzle = {
+  id:'ocean-1', name:'Arrecife Escondido', description:'¡Ayuda a los bichitos a cubrir las conchas del arrecife!',
+  worldId:'ocean', difficulty:'medium', cols:4, rows:4, blockedCells:[],
+  bugLocks: [[0, 0, 'pip']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['El arrecife tiene 16 celdas.', 'Comienza colocando los dos bichos cuadrados en los lados opuestos.', 'El bicho recto llena una fila completa.'],
+  maxMoves:10,
+};
+
+const po2: Puzzle = {
+  id:'ocean-2', name:'Fosa de las Marianas', description:'¡Cuidado con la corriente profunda!',
+  worldId:'ocean', difficulty:'hard', cols:5, rows:4,
+  blockedCells:[[2,0],[2,3]],
+  bugLocks: [[1, 1, 'zig']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a')],
+  hints:['Las dos celdas bloqueadas forman un puente en el centro.', 'La pieza en forma de S encaja muy bien en la parte inferior.', 'Coloca el bicho de forma de L a la izquierda.'],
+  maxMoves:14,
+};
+
+const po3: Puzzle = {
+  id:'ocean-3', name:'Templo Sumergido', description:'¡Los antiguos secretos marinos te esperan!',
+  worldId:'ocean', difficulty:'hard', cols:6, rows:3,
+  blockedCells:[[0,0],[5,2]],
+  bugLocks: [[2, 1, 'mo']],
+  pieces:[makePiece('mo','_a'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['Dos esquinas opuestas están bloqueadas.', 'El bicho cuadrado encaja mejor en el centro.', 'Los bichos pequeños llenan los extremos restantes.'],
+  maxMoves:12,
+};
+
+// ─── World 5: Volcán de Fuego (hard) ───────────────────────────
+const pv1: Puzzle = {
+  id:'volcano-1', name:'Ruta de Lava', description:'¡Camina con cuidado sobre las rocas volcánicas!',
+  worldId:'volcano', difficulty:'hard', cols:5, rows:4,
+  blockedCells:[[0,0],[4,3],[2,2]],
+  bugLocks: [[0, 1, 'coach']],
+  pieces:[makePiece('mo','_a'), makePiece('zig','_a'), makePiece('coach','_a'), makePiece('pip','_a'), makePiece('bobo','_a')],
+  hints:['Tres celdas están bloqueadas por lava ardiente.', 'Coloca a Coach en la columna izquierda.', 'El bicho en forma de S puede rodear la lava central.'],
+  maxMoves:14,
+};
+
+const pv2: Puzzle = {
+  id:'volcano-2', name:'Cámara de Fuego', description:'¡Una gran cámara subterránea de calor extremo!',
+  worldId:'volcano', difficulty:'hard', cols:5, rows:5,
+  blockedCells:[[2,2]],
+  bugLocks: [[0, 0, 'rose'], [4, 4, 'mo']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['El centro está bloqueado por el magma.', 'Usa las dos formas de S para rodear el centro.', 'Los dos cuadrados se acoplan perfectamente en esquinas opuestas.'],
+  maxMoves:18,
+};
+
+const pv3: Puzzle = {
+  id:'volcano-3', name:'Cráter del Destino', description:'¡El último desafío ardiente del volcán!',
+  worldId:'volcano', difficulty:'hard', cols:6, rows:4,
+  blockedCells:[[1,1]],
+  bugLocks: [[0, 0, 'bobo'], [5, 3, 'zig']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('coach','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['Solo una celda está bloqueada cerca de la esquina superior izquierda.', 'Coloca el bicho de forma de L a la derecha.', 'Los bichos cuadrados llenan la parte inferior.'],
+  maxMoves:16,
+};
+
+// ─── World 6: Espacio Estelar (hard) ───────────────────────────
+const ps1: Puzzle = {
+  id:'space-1', name:'Órbita Lunar', description:'¡Gravedad cero en el lado oscuro de la Luna!',
+  worldId:'space', difficulty:'hard', cols:5, rows:4,
+  blockedCells:[[1,1],[3,2]],
+  bugLocks: [[0, 0, 'mo'], [4, 3, 'pip']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a')],
+  hints:['Dos cráteres lunares bloquean el paso.', 'Los dos cuadrados encajan en los lados libres.', 'Usa el bicho en forma de L para rellenar los bordes.'],
+  maxMoves:14,
+};
+
+const ps2: Puzzle = {
+  id:'space-2', name:'Lluvia de Asteroides', description:'¡Esquiva los asteroides y estabiliza la nave!',
+  worldId:'space', difficulty:'hard', cols:5, rows:5,
+  blockedCells:[[2,2]],
+  bugLocks: [[0, 0, 'mo'], [4, 4, 'zig']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('bobo','_a'), makePiece('coach','_a'), makePiece('rose','_a')],
+  hints:['El asteroide central está en [2,2].', 'Coloca las dos formas de S en los laterales.', 'El bicho vertical Coach cubre muy bien las columnas de la izquierda.'],
+  maxMoves:18,
+};
+
+const ps3: Puzzle = {
+  id:'space-3', name:'Supernova', description:'¡El máximo misterio del espacio estelar!',
+  worldId:'space', difficulty:'hard', cols:6, rows:4, blockedCells:[],
+  bugLocks: [[0, 0, 'rose'], [5, 3, 'pip'], [3, 2, 'mo']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['Ninguna celda bloqueada, ¡pero tres cierres de bicho bloquean el camino!', 'Alinea los bichos grandes primero en sus respectivos cierres.', 'Los bichos medianos llenan los huecos del centro.'],
+  maxMoves:18,
+};
+
+// Expand PUZZLES record
+Object.assign(PUZZLES, {
+  'ocean-1': po1, 'ocean-2': po2, 'ocean-3': po3,
+  'volcano-1': pv1, 'volcano-2': pv2, 'volcano-3': pv3,
+  'space-1': ps1, 'space-2': ps2, 'space-3': ps3,
+});
+
 export default PUZZLES;

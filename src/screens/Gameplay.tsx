@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import type { WorldId, Puzzle, PuzzlePiece, Placement, BoardCell } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { PUZZLES } from '../data/puzzles';
@@ -9,11 +10,15 @@ import StarRating from '../components/StarRating';
 // ─── Board helpers ────────────────────────────────────────────
 function buildEmptyBoard(puzzle: Puzzle): BoardCell[][] {
   return Array.from({ length: puzzle.rows }, (_, row) =>
-    Array.from({ length: puzzle.cols }, (_, col) => ({
-      col, row,
-      blocked: puzzle.blockedCells.some(([bc, br]) => bc === col && br === row),
-      pieceId: null,
-    }))
+    Array.from({ length: puzzle.cols }, (_, col) => {
+      const lockEntry = puzzle.bugLocks?.find(([lc, lr]) => lc === col && lr === row);
+      return {
+        col, row,
+        blocked: puzzle.blockedCells.some(([bc, br]) => bc === col && br === row),
+        pieceId: null,
+        bugLock: lockEntry ? lockEntry[2] : undefined,
+      };
+    })
   );
 }
 
@@ -159,12 +164,32 @@ export default function Gameplay() {
 
   // Derive puzzle ID: 'meadow-l1' → 'meadow-1', 'robo-l3' → 'robo-3'
   const puzzleId = useMemo(() => {
+    if (levelId.startsWith('daily-')) {
+      const seedStr = levelId.replace('daily-', '');
+      const seed = parseInt(seedStr, 10) || 1;
+      const keys = Object.keys(PUZZLES).filter(k => !k.startsWith('daily-'));
+      const index = seed % keys.length;
+      return keys[index];
+    }
     const parts = levelId.split('-');
     if (parts.length < 2) return '';
     return `${parts[0]}-${parts[1].replace('l', '')}`;
   }, [levelId]);
 
-  const puzzle = useMemo(() => (puzzleId ? PUZZLES[puzzleId] : null), [puzzleId]);
+  const puzzle = useMemo(() => {
+    if (!puzzleId) return null;
+    const base = PUZZLES[puzzleId];
+    if (!base) return null;
+    if (levelId.startsWith('daily-')) {
+      return {
+        ...base,
+        id: levelId,
+        name: 'Desafío Diario',
+        description: '¡Completa este rompecabezas especial de hoy para ganar +20 XP y una medalla especial!',
+      };
+    }
+    return base;
+  }, [puzzleId, levelId]);
 
   // ── Game state ──────────────────────────────────────────────
   const [board,        setBoard]       = useState<BoardCell[][]>(() => puzzle ? buildEmptyBoard(puzzle) : []);
@@ -217,6 +242,7 @@ export default function Gameplay() {
       if (c < 0 || c >= puzzle.cols || r < 0 || r >= puzzle.rows) return false;
       if (board[r]?.[c]?.blocked)  return false;
       if (board[r]?.[c]?.pieceId)  return false;
+      if (board[r]?.[c]?.bugLock && board[r]?.[c]?.bugLock !== piece.kind) return false;
     }
 
     // Apply placement
@@ -353,6 +379,7 @@ export default function Gameplay() {
       cells.add(key);
       if (c < 0 || c >= puzzle.cols || r < 0 || r >= puzzle.rows) valid = false;
       else if (board[r]?.[c]?.blocked || board[r]?.[c]?.pieceId)  valid = false;
+      else if (board[r]?.[c]?.bugLock && board[r]?.[c]?.bugLock !== piece.kind) valid = false;
     }
     return { cells, valid };
   }, [hoverCell, dragPieceId, puzzle, rotations, board]);
@@ -381,10 +408,15 @@ export default function Gameplay() {
   const ghostH     = dragPiece ? (Math.max(...dragShape.map(([,r]) => r)) + 1) * CELL_SIZE : 0;
 
   const starPreview = moves > 0 ? calcStars(moves + 1, puzzle.maxMoves) : 3;
-  const levelLabel  = levelId
-    .replace('meadow-l', 'Pradera ')
-    .replace('crystal-l', 'Cueva ')
-    .replace('robo-l',    'Arrecife ');
+  const levelLabel = levelId.startsWith('daily-')
+    ? 'Desafío Diario'
+    : levelId
+        .replace('meadow-l', 'Pradera ')
+        .replace('crystal-l', 'Cueva ')
+        .replace('robo-l',    'Arrecife ')
+        .replace('ocean-l',   'Océano ')
+        .replace('volcano-l', 'Volcán ')
+        .replace('space-l',   'Espacio ');
 
   return (
     <div
@@ -469,7 +501,14 @@ export default function Gameplay() {
                       : 'inset 0 2px 4px rgba(0,0,0,0.5)',
                     cursor: cell.blocked || cell.pieceId ? 'default' : 'pointer',
                     transition: 'background 0.07s, box-shadow 0.07s',
-                  }}/>
+                    position: 'relative',
+                  }}>
+                    {cell.bugLock && !cell.pieceId && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                        <BugSvg kind={cell.bugLock} size={CELL_SIZE * 0.65} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -478,10 +517,16 @@ export default function Gameplay() {
             {placements.map(pl => {
               const piece = puzzle.pieces.find(p => p.id === pl.pieceId)!;
               return (
-                <div key={pl.pieceId} className="absolute pointer-events-none z-10"
-                  style={{ left: pl.col * CELL_SIZE, top: pl.row * CELL_SIZE }}>
+                <motion.div
+                  key={pl.pieceId}
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+                  className="absolute pointer-events-none z-10"
+                  style={{ left: pl.col * CELL_SIZE, top: pl.row * CELL_SIZE }}
+                >
                   <PieceTile piece={piece} rotation={pl.rotation} cellSize={CELL_SIZE}/>
-                </div>
+                </motion.div>
               );
             })}
 
@@ -510,17 +555,23 @@ export default function Gameplay() {
             if (!isAvail) return null;
 
             return (
-              <div key={piece.id}
+              <motion.div
+                key={piece.id}
                 onPointerDown={e => onPiecePointerDown(e, piece.id)}
                 onClick={() => !isDrag && setSelected(isSel ? null : piece.id)}
-                className={`relative flex items-center justify-center rounded-xl cursor-pointer transition-all ${isShake ? 'animate-wiggle' : ''} active:scale-95`}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                animate={isShake ? { x: [-8, 8, -6, 6, -4, 4, 0] } : { scale: 1 }}
+                transition={isShake ? { duration: 0.4 } : { type: 'spring', stiffness: 400, damping: 25 }}
+                className="relative flex items-center justify-center rounded-xl cursor-pointer transition-all"
                 style={{
                   padding: 6, minWidth: 52, minHeight: 70,
                   background: isSel && !isDrag ? 'rgba(255,200,61,0.18)' : 'transparent',
                   border: isSel && !isDrag ? '2px solid #FFC83D' : '2px solid transparent',
                   opacity: isDrag ? 0.28 : 1,
                   touchAction: 'none',
-                }}>
+                }}
+              >
                 <PieceTile piece={piece} rotation={rot} cellSize={28}/>
                 {isSel && !isDrag && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2"
@@ -528,7 +579,7 @@ export default function Gameplay() {
                              borderLeft:'5px solid transparent', borderRight:'5px solid transparent',
                              borderBottom:'7px solid #FFC83D' }}/>
                 )}
-              </div>
+              </motion.div>
             );
           })}
 
@@ -594,10 +645,15 @@ export default function Gameplay() {
 
       {/* ── Drag ghost ─────────────────────────────────────── */}
       {dragPiece && (
-        <div className="fixed z-50 pointer-events-none"
-          style={{ left: ghostPos.x - ghostW/2, top: ghostPos.y - ghostH/2, width: ghostW, height: ghostH }}>
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1.1, opacity: 0.9, x: ghostPos.x - ghostW/2, y: ghostPos.y - ghostH/2 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+          className="fixed z-50 pointer-events-none"
+          style={{ left: 0, top: 0, width: ghostW, height: ghostH }}
+        >
           <PieceTile piece={dragPiece} rotation={dragRot} cellSize={CELL_SIZE} ghost/>
-        </div>
+        </motion.div>
       )}
 
       <style>{`

@@ -73,6 +73,14 @@ export const BADGES: Badge[] = [
     color: '#FF6FA8', darkColor: '#C73C77',
     requiresPuzzles: 5,
   },
+  {
+    id: 'daily-challenge',
+    name: 'Campeón Diario',
+    description: '¡Completaste tu primer Desafío Diario de BRAIN BUGS y obtuviste doble XP!',
+    condition: 'Resuelve un Desafío Diario',
+    emoji: '📅',
+    color: '#FF5722', darkColor: '#E64A19',
+  },
 ];
 
 export const BADGE_MAP: Record<string, Badge> = Object.fromEntries(BADGES.map(b => [b.id, b]));

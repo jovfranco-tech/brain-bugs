@@ -49,6 +49,48 @@ export const WORLDS: World[] = [
       { id: 'robo-l5', worldId: 'robo', number: 5, name: 'Circuito Final',  puzzleId: 'robo-5', maxStars: 3, requiredStars: 24 },
     ],
   },
+  {
+    id: 'ocean',
+    name: 'Océano Misterioso',
+    description: '¡Explora las profundidades marinas y encuentra arrecifes llenos de vida!',
+    emoji: '🌊',
+    bgGradient: 'from-blue-500 to-indigo-800',
+    accentColor: '#2B86C5',
+    requiredStars: 25,
+    levels: [
+      { id: 'ocean-l1', worldId: 'ocean', number: 1, name: 'Arrecife Escondido', puzzleId: 'ocean-1', maxStars: 3, requiredStars: 25 },
+      { id: 'ocean-l2', worldId: 'ocean', number: 2, name: 'Fosa de las Marianas', puzzleId: 'ocean-2', maxStars: 3, requiredStars: 27 },
+      { id: 'ocean-l3', worldId: 'ocean', number: 3, name: 'Templo Sumergido', puzzleId: 'ocean-3', maxStars: 3, requiredStars: 29 },
+    ],
+  },
+  {
+    id: 'volcano',
+    name: 'Volcán de Fuego',
+    description: '¡Cuidado con la lava caliente! Un desafío ardiente para los bichos más valientes.',
+    emoji: '🌋',
+    bgGradient: 'from-orange-500 to-red-800',
+    accentColor: '#FF4E50',
+    requiredStars: 30,
+    levels: [
+      { id: 'volcano-l1', worldId: 'volcano', number: 1, name: 'Ruta de Lava', puzzleId: 'volcano-1', maxStars: 3, requiredStars: 30 },
+      { id: 'volcano-l2', worldId: 'volcano', number: 2, name: 'Cámara de Fuego', puzzleId: 'volcano-2', maxStars: 3, requiredStars: 32 },
+      { id: 'volcano-l3', worldId: 'volcano', number: 3, name: 'Cráter del Destino', puzzleId: 'volcano-3', maxStars: 3, requiredStars: 34 },
+    ],
+  },
+  {
+    id: 'space',
+    name: 'Espacio Estelar',
+    description: '¡Viaja más allá de las estrellas en una gravedad cero y resuelve misterios galácticos!',
+    emoji: '🚀',
+    bgGradient: 'from-slate-900 to-purple-950',
+    accentColor: '#F5576C',
+    requiredStars: 36,
+    levels: [
+      { id: 'space-l1', worldId: 'space', number: 1, name: 'Órbita Lunar', puzzleId: 'space-1', maxStars: 3, requiredStars: 36 },
+      { id: 'space-l2', worldId: 'space', number: 2, name: 'Lluvia de Asteroides', puzzleId: 'space-2', maxStars: 3, requiredStars: 38 },
+      { id: 'space-l3', worldId: 'space', number: 3, name: 'Supernova', puzzleId: 'space-3', maxStars: 3, requiredStars: 40 },
+    ],
+  },
 ];
 
 export const WORLD_MAP: Record<string, World> = Object.fromEntries(WORLDS.map(w => [w.id, w]));

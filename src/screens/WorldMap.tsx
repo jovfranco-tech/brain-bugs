@@ -10,6 +10,9 @@ const ISLAND: Record<WorldId, { light: string; mid: string; dark: string; shadow
   meadow:  { light:'#9EECD0', mid:'#3FD09E', dark:'#1F9A6E', shadow:'#145E43' },
   crystal: { light:'#C8B4FF', mid:'#8E6BFF', dark:'#5A3BD1', shadow:'#3A259A' },
   robo:    { light:'#A8DDFF', mid:'#5BC5FF', dark:'#2890D0', shadow:'#145E8A' },
+  ocean:   { light:'#8AD0FF', mid:'#2B86C5', dark:'#175882', shadow:'#0A2D45' },
+  volcano: { light:'#FFA17F', mid:'#FF4E50', dark:'#D82D30', shadow:'#8C1518' },
+  space:   { light:'#DDB7FF', mid:'#9A4BFF', dark:'#631BC4', shadow:'#3F0C85' },
 };
 
 function LevelNode({ number, stars, unlocked, isCurrent, onClick }: {
@@ -74,7 +77,7 @@ function WorldCard({ world, totalStars, levelProgress, onSelectLevel }: {
                   {world.name}
                 </h3>
                 <p className="text-white/75 text-xs font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>
-                  {isUnlocked ? world.description : `Unlock at ${world.requiredStars} ⭐`}
+                  {isUnlocked ? world.description : `Desbloquea con ${world.requiredStars} ⭐`}
                 </p>
               </div>
             </div>
@@ -97,7 +100,7 @@ function WorldCard({ world, totalStars, levelProgress, onSelectLevel }: {
             <div className="flex flex-col items-center gap-0.5 mt-1">
               <span style={{fontSize:30}}>🔒</span>
               <span className="text-white/70 text-xs font-bold" style={{fontFamily:'"Nunito",system-ui'}}>
-                {world.requiredStars}★ needed
+                Faltan {world.requiredStars}★
               </span>
             </div>
           )}
@@ -121,7 +124,7 @@ function WorldCard({ world, totalStars, levelProgress, onSelectLevel }: {
           <div className="px-5 pb-5">
             <div className="bg-black/15 rounded-2xl py-3 px-4">
               <p className="text-white/70 text-sm font-semibold text-center" style={{fontFamily:'"Nunito",system-ui'}}>
-                Solve more puzzles in the Meadow to unlock! 🌿
+                ¡Resuelve más rompecabezas en los mundos anteriores para desbloquear! 🌟
               </p>
             </div>
           </div>
@@ -169,7 +172,7 @@ export default function WorldMap() {
 
         <div className="font-bold text-white text-lg uppercase tracking-widest"
           style={{fontFamily:'"Fredoka",system-ui', textShadow:'0 2px 0 rgba(0,0,0,0.2)'}}>
-          World Map
+          Mapa del Mundo
         </div>
 
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
@@ -184,7 +187,7 @@ export default function WorldMap() {
         <div className="px-4 py-1.5 rounded-full"
           style={{background:'rgba(255,255,255,0.88)', backdropFilter:'blur(6px)', boxShadow:'0 3px 0 rgba(35,19,71,0.1)'}}>
           <span className="font-bold text-ink text-sm" style={{fontFamily:'"Fredoka",system-ui'}}>
-            ⭐ {totalStars} / {WORLDS.reduce((s,w)=>s+w.levels.length*3,0)} stars collected
+            ⭐ {totalStars} / {WORLDS.reduce((s,w)=>s+w.levels.length*3,0)} estrellas obtenidas
           </span>
         </div>
       </div>

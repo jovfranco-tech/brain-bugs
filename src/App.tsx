@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Landing from './screens/Landing';
 import AuthScreen from './screens/AuthScreen';
@@ -10,22 +11,42 @@ import { VictoryScreen, RewardsScreen, ParentDashboard, SettingsScreen } from '.
 
 function AppRouter() {
   const { screen } = useApp();
-  switch (screen) {
-    case 'landing':          return <Landing />;
-    case 'login':            return <AuthScreen mode="login" />;
-    case 'signup':           return <AuthScreen mode="signup" />;
-    case 'child-select':
-    case 'child-create':     return <ChildSelector />;
-    case 'home':             return <HomeScreen />;
-    case 'world-map':
-    case 'level-select':     return <WorldMap />;
-    case 'gameplay':         return <Gameplay />;
-    case 'victory':          return <VictoryScreen />;
-    case 'rewards':          return <RewardsScreen />;
-    case 'parent-dashboard': return <ParentDashboard />;
-    case 'settings':         return <SettingsScreen />;
-    default:                 return <Landing />;
-  }
+
+  const renderScreen = () => {
+    switch (screen) {
+      case 'landing':          return <Landing />;
+      case 'login':            return <AuthScreen mode="login" />;
+      case 'signup':           return <AuthScreen mode="signup" />;
+      case 'child-select':
+      case 'child-create':     return <ChildSelector />;
+      case 'home':             return <HomeScreen />;
+      case 'world-map':
+      case 'level-select':     return <WorldMap />;
+      case 'gameplay':         return <Gameplay />;
+      case 'victory':          return <VictoryScreen />;
+      case 'rewards':          return <RewardsScreen />;
+      case 'parent-dashboard': return <ParentDashboard />;
+      case 'settings':         return <SettingsScreen />;
+      default:                 return <Landing />;
+    }
+  };
+
+  return (
+    <div className="w-full h-full relative overflow-hidden bg-black">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={screen}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="absolute inset-0 w-full h-full"
+        >
+          {renderScreen()}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export default function App() {
@@ -35,3 +56,4 @@ export default function App() {
     </AppProvider>
   );
 }
+

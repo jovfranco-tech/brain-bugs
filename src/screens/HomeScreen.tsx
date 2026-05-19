@@ -43,6 +43,15 @@ export default function HomeScreen() {
   const totalStars = getTotalStars(progress);
   const puzzlesSolved = Object.values(progress.levelProgress).filter(l => l.stars > 0).length;
 
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const dailyId = `daily-${seed}`;
+  const isDailySolved = !!progress.levelProgress[dailyId]?.stars;
+
+  const handlePlayDaily = () => {
+    navigate('gameplay', { levelId: dailyId, worldId: 'meadow' });
+  };
+
   return (
     <div className="relative flex flex-col h-full overflow-hidden">
       {/* Sky background */}
@@ -133,6 +142,58 @@ export default function HomeScreen() {
             ))}
           </div>
         )}
+
+        {/* Daily Challenge Card */}
+        <div className="mx-4 mt-2 mb-1">
+          <button onClick={handlePlayDaily}
+            className="w-full flex items-center justify-between p-3.5 rounded-3xl active:scale-98 transition-all text-left"
+            style={{
+              background: isDailySolved
+                ? 'linear-gradient(135deg, #E6FBF3 0%, #CCF5E6 100%)'
+                : 'linear-gradient(135deg, #FFF6E6 0%, #FFE9CC 100%)',
+              border: isDailySolved
+                ? '2px solid #3FD09E'
+                : '2px solid #FFA229',
+              boxShadow: isDailySolved
+                ? '0 6px 0 #1F9A6E, 0 8px 20px rgba(31,154,110,0.15)'
+                : '0 6px 0 #E08518, 0 8px 20px rgba(224,133,24,0.15)',
+            }}>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: isDailySolved
+                    ? 'linear-gradient(180deg, #3FD09E 0%, #1F9A6E 100%)'
+                    : 'linear-gradient(180deg, #FFA229 0%, #E08518 100%)',
+                  boxShadow: 'inset 0 -3px 0 rgba(0,0,0,0.18)',
+                }}>
+                <span className="text-2xl">{isDailySolved ? '🏆' : '📅'}</span>
+              </div>
+              <div>
+                <span className="px-2 py-0.5 rounded-full text-white font-bold uppercase"
+                  style={{
+                    background: isDailySolved ? '#3FD09E' : '#FF4E50',
+                    fontSize: 8,
+                    letterSpacing: 0.8,
+                  }}>
+                  {isDailySolved ? '¡Completado!' : '¡Doble XP!'}
+                </span>
+                <h4 className="font-bold text-ink text-base mt-0.5 leading-tight" style={{ fontFamily: '"Fredoka",system-ui' }}>
+                  Desafío Diario
+                </h4>
+                <p className="text-xs text-ink/65 font-medium leading-none" style={{ fontFamily: '"Nunito",system-ui' }}>
+                  {isDailySolved ? '¡Buen trabajo! Ganaste +20 XP hoy.' : '¡Completa hoy para +20 XP y medalla!'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm"
+              style={{
+                background: isDailySolved ? 'rgba(63,208,158,0.15)' : 'rgba(255,162,41,0.15)',
+                color: isDailySolved ? '#1F9A6E' : '#FFA229',
+              }}>
+              {isDailySolved ? '✓' : '▶'}
+            </div>
+          </button>
+        </div>
 
         {/* Nav buttons */}
         <div className="flex flex-col gap-2.5 px-4 mt-3">

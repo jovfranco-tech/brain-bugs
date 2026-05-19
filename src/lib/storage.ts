@@ -72,7 +72,7 @@ export function setCurrentChild(id: string | null): void {
 }
 
 // ─── Progress ─────────────────────────────────────────────────
-function getProgressMap(): Record<string, ProgressRecord> {
+export function getProgressMap(): Record<string, ProgressRecord> {
   return load<Record<string, ProgressRecord>>(KEY.PROGRESS, {});
 }
 
@@ -165,3 +165,12 @@ export function verifyPassword(parentId: string, password: string): boolean {
 export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+export function saveAllChildren(list: ChildProfile[]): void {
+  save(KEY.CHILDREN, list);
+}
+
+export function saveProgressMap(map: Record<string, ProgressRecord>): void {
+  save(KEY.PROGRESS, map);
+}
+
