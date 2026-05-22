@@ -1330,6 +1330,32 @@ export function SettingsScreen() {
   const [musicEnabled, setMusicEnabled] = useState(() => sound.getMusicEnabled());
   const [sfxEnabled, setSfxEnabled] = useState(() => sound.getSfxEnabled());
 
+  const [ttsProfile, setTtsProfile] = useState(() => {
+    return localStorage.getItem('brain_bugs_tts_profile') || 'bicho';
+  });
+
+  const handleSelectProfile = (profile: string, pitch: number, rate: number) => {
+    sound.playClick();
+    setTtsProfile(profile);
+    localStorage.setItem('brain_bugs_tts_profile', profile);
+    localStorage.setItem('brain_bugs_tts_pitch', String(pitch));
+    localStorage.setItem('brain_bugs_tts_rate', String(rate));
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const profileNames: Record<string, string> = {
+        bicho: "¡Hola! Soy tu amigo bicho espacial.",
+        estandar: "Hola. Estoy listo para entrenar contigo.",
+        robot: "Iniciando sistema de lógica cognitiva."
+      };
+      const utterance = new SpeechSynthesisUtterance(profileNames[profile]);
+      utterance.lang = 'es-ES';
+      utterance.pitch = pitch;
+      utterance.rate = rate;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full" style={{background:'#F4F2FA'}}>
       <div className="bg-white px-4 pt-14 pb-3 flex items-center justify-between"
@@ -1405,6 +1431,43 @@ export function SettingsScreen() {
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        {/* Perfil de Voz TTS Card */}
+        <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+          <p className="font-bold text-ink mb-1" style={{fontFamily:'"Fredoka",system-ui'}}>🗣️ Perfil de Voz del AI Coach</p>
+          <p className="text-xs text-ink/50 font-semibold mb-4" style={{fontFamily:'"Nunito",system-ui'}}>Elige el estilo de voz del narrador inteligente</p>
+          
+          <div className="flex flex-col gap-2">
+            {[
+              { id: 'bicho', label: '👽 Bicho Espacial', sub: 'Voz infantil, aguda y juguetona', pitch: 1.35, rate: 1.0 },
+              { id: 'estandar', label: '🧠 Entrenador Estándar', sub: 'Voz natural y equilibrada', pitch: 1.0, rate: 1.0 },
+              { id: 'robot', label: '🤖 Robot de Lógica', sub: 'Voz tecnológica y pausada', pitch: 0.6, rate: 0.85 },
+            ].map(prof => {
+              const active = ttsProfile === prof.id;
+              return (
+                <button
+                  key={prof.id}
+                  onClick={() => handleSelectProfile(prof.id, prof.pitch, prof.rate)}
+                  className="w-full py-3 px-4 rounded-xl font-bold transition-all text-left flex items-center justify-between border"
+                  style={{
+                    fontFamily: '"Fredoka",system-ui',
+                    background: active
+                      ? 'linear-gradient(180deg,#8E6BFF,#5A3BD1)'
+                      : '#F4F2FA',
+                    color: active ? '#fff' : '#231347',
+                    borderColor: active ? 'transparent' : 'rgba(35,19,71,0.05)',
+                  }}
+                >
+                  <div className="text-left">
+                    <span className="text-sm block">{prof.label}</span>
+                    <span className={`text-[10px] block font-semibold ${active ? 'text-white/70' : 'text-ink/40'}`} style={{ fontFamily: '"Nunito",system-ui' }}>{prof.sub}</span>
+                  </div>
+                  {active && <span className="text-white font-bold">✓</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
 

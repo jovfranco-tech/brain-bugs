@@ -6,6 +6,7 @@ import BugSvg from '../components/BugSvg';
 import BottomNav from '../components/BottomNav';
 import { sound } from '../lib/sound';
 import { BUG_COLORS, PIECE_DEFS } from '../data/characters';
+import confetti from 'canvas-confetti';
 
 // Standard kinds of bugs for pieces
 const BUG_KINDS: BugKind[] = ['pip', 'bobo', 'zig', 'mo', 'rose'];
@@ -291,6 +292,80 @@ export default function BugLab() {
     setLocks([]);
   };
 
+  const handleGenerateProceduralLevel = () => {
+    sound.playClick();
+    const allPieces: BugKind[] = ['pip', 'bobo', 'zig', 'mo', 'rose'];
+    const pieceSizes: Record<BugKind, number> = {
+      rose: 2,
+      pip: 3,
+      bobo: 3,
+      coach: 3,
+      zig: 4,
+      mo: 4
+    };
+
+    const newCols = 5;
+    const newRows = 5;
+
+    let success = false;
+    let attempts = 0;
+
+    while (!success && attempts < 80) {
+      attempts++;
+      const numPieces = 3 + Math.floor(Math.random() * 3); // 3, 4, 5
+      const selected: BugKind[] = [];
+      let totalSize = 0;
+
+      for (let i = 0; i < numPieces; i++) {
+        const randPiece = allPieces[Math.floor(Math.random() * allPieces.length)];
+        selected.push(randPiece);
+        totalSize += pieceSizes[randPiece];
+      }
+
+      if (totalSize >= 12 && totalSize <= 22) {
+        const blockCount = 25 - totalSize;
+        const blockedCells: [number, number][] = [];
+        const allCoords: [number, number][] = [];
+
+        for (let r = 0; r < newRows; r++) {
+          for (let c = 0; c < newCols; c++) {
+            allCoords.push([c, r]);
+          }
+        }
+
+        const shuffled = [...allCoords].sort(() => Math.random() - 0.5);
+        for (let b = 0; b < blockCount; b++) {
+          blockedCells.push(shuffled[b]);
+        }
+
+        const solvable = checkSolvability(newCols, newRows, blockedCells, [], selected);
+        if (solvable) {
+          setCols(newCols);
+          setRows(newRows);
+          setBlocked(blockedCells);
+          setLocks([]);
+          setSelectedPieces(selected);
+          success = true;
+          
+          confetti({
+            particleCount: 60,
+            spread: 50,
+            origin: { y: 0.6 }
+          });
+          break;
+        }
+      }
+    }
+
+    if (!success) {
+      setCols(5);
+      setRows(5);
+      setBlocked([[2,2], [0,0], [4,4], [0,4], [4,0], [1,2], [3,2], [2,1], [2,3]]);
+      setSelectedPieces(['pip', 'bobo', 'zig', 'rose', 'rose']);
+      setLocks([]);
+    }
+  };
+
   // 🔒 Locked View for XP gate
   if (isLocked) {
     return (
@@ -418,6 +493,17 @@ export default function BugLab() {
               );
             })}
           </div>
+          <button
+            onClick={handleGenerateProceduralLevel}
+            className="w-full mt-2.5 py-3 rounded-xl font-bold text-xs text-white transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            style={{
+              background: 'linear-gradient(135deg, #8E6BFF, #6D44FF)',
+              boxShadow: '0 3px 0 #4C26C9',
+              fontFamily: '"Fredoka",system-ui',
+            }}
+          >
+            🎲 Generación Inteligente (Procedural)
+          </button>
         </div>
 
         {/* Dynamic Solvability Warn Banner */}

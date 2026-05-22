@@ -9,6 +9,7 @@ interface BugSvgProps {
   animated?: boolean;
   accessoryId?: string | null;
   expression?: 'normal' | 'blink' | 'wink' | 'stars';
+  accessoryFloat?: boolean;
 }
 
 
@@ -65,51 +66,61 @@ function Smile({ x, y, w = 10 }: { x: number; y: number; w?: number }) {
   );
 }
 
-function Accessory({ id }: { id: string }) {
-  if (id === 'crown') {
-    return (
-      <g transform="translate(50, 27) scale(0.9) translate(-18, -15)">
-        <polygon points="5,15 10,2 18,10 26,2 31,15" fill="#FFD55E" stroke="#B97808" strokeWidth="2.2" strokeLinejoin="round"/>
-        <circle cx="10" cy="2" r="2.5" fill="#E84118"/>
-        <circle cx="18" cy="10" r="2" fill="#00A8FF"/>
-        <circle cx="26" cy="2" r="2.5" fill="#E84118"/>
-        <rect x="8" y="12" width="20" height="3" fill="#E84118" rx="1"/>
-      </g>
-    );
-  }
-  if (id === 'sunglasses') {
-    return (
-      <g transform="translate(50, 54) scale(0.95) translate(-25, -8)">
-        <ellipse cx="14" cy="8" rx="10" ry="7" fill="#2F3640" stroke="#1E272E" strokeWidth="1.5"/>
-        <path d="M 6 6 Q 10 4 14 7" stroke="#FFF" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6"/>
-        <ellipse cx="36" cy="8" rx="10" ry="7" fill="#2F3640" stroke="#1E272E" strokeWidth="1.5"/>
-        <path d="M 28 6 Q 32 4 36 7" stroke="#FFF" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6"/>
-        <rect x="20" y="5" width="10" height="2.5" fill="#1E272E" rx="0.5"/>
-        <path d="M 4 8 L 0 5" stroke="#1E272E" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M 46 8 L 50 5" stroke="#1E272E" strokeWidth="2" strokeLinecap="round"/>
-      </g>
-    );
-  }
-  if (id === 'tophat') {
-    return (
-      <g transform="translate(50, 27) scale(0.95) translate(-20, -22)">
-        <ellipse cx="20" cy="20" rx="18" ry="4" fill="#2F3640"/>
-        <path d="M 8 20 L 10 3 L 30 3 L 32 20 Z" fill="#2F3640" stroke="#1E272E" strokeWidth="1"/>
-        <path d="M 8.8 19 L 9.3 14 L 30.7 14 L 31.2 19 Z" fill="#E84118"/>
-      </g>
-    );
-  }
-  if (id === 'mustache') {
-    return (
-      <g transform="translate(50, 62) scale(0.95) translate(-20, -5)">
-        <path d="M 20 6 C 15 2 10 2 4 6 C 0 8 0 11 3 10 C 10 8 15 10 20 7 C 25 10 30 8 37 10 C 40 11 40 8 36 6 C 30 2 25 2 20 6 Z" fill="#4A3728" stroke="#2C1D11" strokeWidth="1.2"/>
-      </g>
-    );
-  }
-  return null;
+function Accessory({ id, animFloat = false }: { id: string; animFloat?: boolean }) {
+  const content = (() => {
+    if (id === 'crown') {
+      return (
+        <g transform="translate(50, 27) scale(0.9) translate(-18, -15)">
+          <polygon points="5,15 10,2 18,10 26,2 31,15" fill="#FFD55E" stroke="#B97808" strokeWidth="2.2" strokeLinejoin="round"/>
+          <circle cx="10" cy="2" r="2.5" fill="#E84118"/>
+          <circle cx="18" cy="10" r="2" fill="#00A8FF"/>
+          <circle cx="26" cy="2" r="2.5" fill="#E84118"/>
+          <rect x="8" y="12" width="20" height="3" fill="#E84118" rx="1"/>
+        </g>
+      );
+    }
+    if (id === 'sunglasses') {
+      return (
+        <g transform="translate(50, 54) scale(0.95) translate(-25, -8)">
+          <ellipse cx="14" cy="8" rx="10" ry="7" fill="#2F3640" stroke="#1E272E" strokeWidth="1.5"/>
+          <path d="M 6 6 Q 10 4 14 7" stroke="#FFF" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6"/>
+          <ellipse cx="36" cy="8" rx="10" ry="7" fill="#2F3640" stroke="#1E272E" strokeWidth="1.5"/>
+          <path d="M 28 6 Q 32 4 36 7" stroke="#FFF" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6"/>
+          <rect x="20" y="5" width="10" height="2.5" fill="#1E272E" rx="0.5"/>
+          <path d="M 4 8 L 0 5" stroke="#1E272E" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M 46 8 L 50 5" stroke="#1E272E" strokeWidth="2" strokeLinecap="round"/>
+        </g>
+      );
+    }
+    if (id === 'tophat') {
+      return (
+        <g transform="translate(50, 27) scale(0.95) translate(-20, -22)">
+          <ellipse cx="20" cy="20" rx="18" ry="4" fill="#2F3640"/>
+          <path d="M 8 20 L 10 3 L 30 3 L 32 20 Z" fill="#2F3640" stroke="#1E272E" strokeWidth="1"/>
+          <path d="M 8.8 19 L 9.3 14 L 30.7 14 L 31.2 19 Z" fill="#E84118"/>
+        </g>
+      );
+    }
+    if (id === 'mustache') {
+      return (
+        <g transform="translate(50, 62) scale(0.95) translate(-20, -5)">
+          <path d="M 20 6 C 15 2 10 2 4 6 C 0 8 0 11 3 10 C 10 8 15 10 20 7 C 25 10 30 8 37 10 C 40 11 40 8 36 6 C 30 2 25 2 20 6 Z" fill="#4A3728" stroke="#2C1D11" strokeWidth="1.2"/>
+        </g>
+      );
+    }
+    return null;
+  })();
+
+  if (!content) return null;
+
+  return (
+    <g className={animFloat ? "animate-accessory-float origin-center" : ""}>
+      {content}
+    </g>
+  );
 }
 
-export default function BugSvg({ kind, size = 80, className = '', animated = false, accessoryId = null, expression }: BugSvgProps) {
+export default function BugSvg({ kind, size = 80, className = '', animated = false, accessoryId = null, expression, accessoryFloat = false }: BugSvgProps) {
   const [isBlinking, setIsBlinking] = useState(false);
 
   useEffect(() => {
@@ -152,7 +163,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <Smile x={50} y={66} w={11}/>
       <ellipse cx="38" cy="64" rx="3.5" ry="2.2" fill="#FF8AB0" opacity="0.5"/>
       <ellipse cx="62" cy="64" rx="3.5" ry="2.2" fill="#FF8AB0" opacity="0.5"/>
-      {accessoryId && <Accessory id={accessoryId}/>}
+      {accessoryId && <Accessory id={accessoryId} animFloat={accessoryFloat}/>}
     </svg>
   );
 
@@ -171,7 +182,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <circle cx="68" cy="60" r="2" fill={c.dark} opacity="0.4"/>
       <Eyes cx1={42} cx2={58} cy={52} r={7.5} expression={activeExpression}/>
       <Smile x={50} y={66} w={13}/>
-      {accessoryId && <Accessory id={accessoryId}/>}
+      {accessoryId && <Accessory id={accessoryId} animFloat={accessoryFloat}/>}
     </svg>
   );
 
@@ -189,7 +200,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       </g>
       <Eyes cx1={42} cx2={58} cy={55} expression={activeExpression}/>
       <Smile x={50} y={69} w={11}/>
-      {accessoryId && <Accessory id={accessoryId}/>}
+      {accessoryId && <Accessory id={accessoryId} animFloat={accessoryFloat}/>}
     </svg>
   );
 
@@ -206,7 +217,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <circle cx="60" cy="55" r="2" fill="#fff" opacity="0.8"/>
       <Eyes cx1={42} cx2={58} cy={54} expression={activeExpression}/>
       <Smile x={50} y={68} w={12}/>
-      {accessoryId && <Accessory id={accessoryId}/>}
+      {accessoryId && <Accessory id={accessoryId} animFloat={accessoryFloat}/>}
     </svg>
   );
 
@@ -226,7 +237,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <Smile x={50} y={70} w={13}/>
       <ellipse cx="36" cy="66" rx="3" ry="2" fill="#FF6F88" opacity="0.5"/>
       <ellipse cx="64" cy="66" rx="3" ry="2" fill="#FF6F88" opacity="0.5"/>
-      {accessoryId && <Accessory id={accessoryId}/>}
+      {accessoryId && <Accessory id={accessoryId} animFloat={accessoryFloat}/>}
     </svg>
   );
 
@@ -241,7 +252,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <ellipse cx="50" cy="59" rx="26" ry="24" fill="url(#rose-g)"/>
       <Eyes cx1={42} cx2={58} cy={54} expression={activeExpression}/>
       <Smile x={50} y={66} w={11}/>
-      {accessoryId && <Accessory id={accessoryId}/>}
+      {accessoryId && <Accessory id={accessoryId} animFloat={accessoryFloat}/>}
     </svg>
   );
 }

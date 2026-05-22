@@ -227,8 +227,11 @@ export default function Gameplay() {
       }
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'es-ES';
-      utterance.pitch = 1.35; // friendly childlike cartoon pitch
-      utterance.rate = 1.0;   // normal comfortable rate
+      
+      const storedPitch = localStorage.getItem('brain_bugs_tts_pitch');
+      const storedRate = localStorage.getItem('brain_bugs_tts_rate');
+      utterance.pitch = storedPitch ? parseFloat(storedPitch) : 1.35;
+      utterance.rate = storedRate ? parseFloat(storedRate) : 1.0;
       
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);

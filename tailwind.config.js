@@ -18,11 +18,13 @@ export default {
         'wiggle':'wiggle 0.5s ease-in-out',
         'float':'float 3s ease-in-out infinite',
         'spin-slow':'spin 2s linear infinite',
+        'accessory-float':'accessoryFloat 2.6s ease-in-out infinite',
       },
       keyframes: {
         bounceIn:{'0%':{transform:'scale(0.3)',opacity:'0'},'70%':{transform:'scale(1.1)'},'100%':{transform:'scale(1)',opacity:'1'}},
         wiggle:{'0%,100%':{transform:'rotate(-4deg)'},'50%':{transform:'rotate(4deg)'}},
         float:{'0%,100%':{transform:'translateY(0px)'},'50%':{transform:'translateY(-8px)'}},
+        accessoryFloat:{'0%,100%':{transform:'translateY(0px) rotate(0deg)'},'50%':{transform:'translateY(-5px) rotate(3deg)'}},
       },
     },
   },

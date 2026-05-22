@@ -167,6 +167,39 @@ export default function WorldMap() {
     <div className="flex flex-col h-full"
       style={{ background:'linear-gradient(180deg,#7CC7FF 0%,#5BB0FF 40%,#4D9CE5 100%)' }}>
 
+      {/* Subtle Glowing Stardust Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(15)].map((_, i) => {
+          const x = (i * 37) % 100;
+          const delay = i * 0.4;
+          const scale = 0.4 + (i % 3) * 0.3;
+          return (
+            <motion.div
+              key={`star-particle-${i}`}
+              initial={{ opacity: 0.1, y: '110vh' }}
+              animate={{
+                opacity: [0.1, 0.7, 0.1],
+                y: '-10vh',
+                x: [`${x}vw`, `${x + (i % 2 === 0 ? 5 : -5)}vw`]
+              }}
+              transition={{
+                duration: 15 + (i % 5) * 4,
+                repeat: Infinity,
+                delay: -delay,
+                ease: 'linear'
+              }}
+              className="absolute text-yellow-100 font-bold"
+              style={{
+                fontSize: `${scale * 12}px`,
+                filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.8))'
+              }}
+            >
+              ✨
+            </motion.div>
+          );
+        })}
+      </div>
+
       {/* Animated Clouds */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div

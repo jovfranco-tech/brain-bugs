@@ -174,6 +174,7 @@ export default function AccessoryStore() {
                 size={112}
                 animated
                 accessoryId={isSelectedUnlocked ? selectedItem.id : activeId}
+                accessoryFloat={true}
               />
             </motion.div>
           </div>
