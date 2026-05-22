@@ -321,7 +321,7 @@ export function RewardsScreen() {
 
 // ─── Parent Dashboard ─────────────────────────────────────────
 export function ParentDashboard() {
-  const { navigate, parent, children, currentChild, resetChildProgress, signOut } = useApp();
+  const { navigate, parent, children, currentChild, resetChildProgress, signOut, updateChildTimeLimit } = useApp();
   const [viewId, setViewId] = useState(currentChild?.id ?? children[0]?.id ?? '');
   const child = children.find(c=>c.id===viewId) ?? currentChild;
   const progress = child ? getProgress(child.id) : null;
@@ -333,6 +333,18 @@ export function ParentDashboard() {
   const totalHints = progress
     ? Object.values(progress.levelProgress).reduce((s,l)=>s+l.hintsUsed,0) : 0;
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showScreenTime, setShowScreenTime] = useState(false);
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('bb_parent_dark_mode') === 'true';
+  });
+
+  const toggleDarkMode = () => {
+    sound.playClick();
+    const nextVal = !isDarkMode;
+    setIsDarkMode(nextVal);
+    localStorage.setItem('bb_parent_dark_mode', String(nextVal));
+  };
 
   const skills = [
     {label:'Pensamiento lógico', value:Math.min(100, puzzlesSolved*9+totalStars*2), color:'#8E6BFF'},
@@ -348,23 +360,36 @@ export function ParentDashboard() {
   };
 
   return (
-    <div className="flex flex-col h-full" style={{background:'#F4F2FA'}}>
+    <div className="flex flex-col h-full transition-colors duration-300" style={{background: isDarkMode ? '#0D041A' : '#F4F2FA'}}>
       {/* Header */}
-      <div className="bg-white px-4 pt-14 pb-3 flex items-center justify-between"
-        style={{boxShadow:'0 2px 12px rgba(35,19,71,0.06)'}}>
+      <div className="px-4 pt-14 pb-3 flex items-center justify-between transition-colors duration-300"
+        style={{
+          background: isDarkMode ? '#140824' : '#white',
+          boxShadow: isDarkMode ? '0 2px 12px rgba(0,0,0,0.4)' : '0 2px 12px rgba(35,19,71,0.06)',
+          borderBottom: isDarkMode ? '1px solid #23123D' : 'none'
+        }}>
         <button onClick={()=>navigate('home')}
-          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
+          style={{ background: isDarkMode ? '#24133D' : '#F4F2FA' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 6l-6 6 6 6" stroke="#231347" strokeWidth="2.5" strokeLinecap="round"/>
+            <path d="M15 6l-6 6 6 6" stroke={isDarkMode ? '#fff' : '#231347'} strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </button>
-        <div style={{fontFamily:'"Fredoka",system-ui'}} className="font-bold text-ink text-base uppercase tracking-widest">
+        <div style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}} className="font-bold text-base uppercase tracking-widest">
           Panel de Padres
         </div>
-        <button onClick={()=>navigate('settings')}
-          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-          ⚙️
-        </button>
+        <div className="flex gap-2">
+          {/* Dark mode button */}
+          <button onClick={toggleDarkMode} className="w-10 h-10 rounded-full flex items-center justify-center text-lg transition-transform active:scale-95"
+            style={{ background: isDarkMode ? '#24133D' : '#F4F2FA' }}>
+            {isDarkMode ? '🌙' : '☀️'}
+          </button>
+          <button onClick={()=>navigate('settings')}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
+            style={{ background: isDarkMode ? '#24133D' : '#F4F2FA' }}>
+            ⚙️
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-4">
@@ -378,9 +403,10 @@ export function ParentDashboard() {
                   className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold flex-shrink-0 transition-all active:scale-95"
                   style={{
                     fontFamily:'"Fredoka",system-ui',
-                    background: viewId===c.id ? '#8E6BFF' : '#fff',
-                    color: viewId===c.id ? '#fff' : '#231347',
-                    boxShadow: viewId===c.id ? '0 3px 0 #5A3BD1' : '0 2px 0 rgba(35,19,71,0.1)',
+                    background: viewId===c.id ? '#8E6BFF' : isDarkMode ? '#1E0F33' : '#fff',
+                    color: viewId===c.id ? '#fff' : isDarkMode ? '#D8B4FE' : '#231347',
+                    boxShadow: viewId===c.id ? '0 3px 0 #5A3BD1' : isDarkMode ? '0 2px 0 #05010B' : '0 2px 0 rgba(35,19,71,0.1)',
+                    border: viewId===c.id ? 'none' : isDarkMode ? '1px solid #331C54' : 'none',
                   }}>
                   <span style={{fontSize:16}}>{av.emoji}</span> {c.nickname}
                 </button>
@@ -391,25 +417,29 @@ export function ParentDashboard() {
 
         {child && (() => {
           const av = AVATAR_MAP[child.avatarId] ?? AVATAR_MAP.buzzy;
-          const worldLabelMap = { meadow: 'Pradera', crystal: 'Cueva', robo: 'Arrecife' };
-          const worldLabel = worldLabelMap[child.currentWorld as 'meadow'|'crystal'|'robo'] || child.currentWorld;
+          const worldLabelMap = { meadow: 'Pradera', crystal: 'Cueva', robo: 'Arrecife', ocean: 'Océano', volcano: 'Volcán', space: 'Espacio' };
+          const worldLabel = worldLabelMap[child.currentWorld as 'meadow'|'crystal'|'robo'|'ocean'|'volcano'|'space'] || child.currentWorld;
           return (
-            <div className="mt-3 p-4 rounded-2xl bg-white flex items-center gap-4"
-              style={{boxShadow:'0 4px 0 rgba(35,19,71,0.08)'}}>
+            <div className="mt-3 p-4 rounded-2xl flex items-center gap-4 transition-colors"
+              style={{
+                background: isDarkMode ? '#1E0F33' : '#fff',
+                boxShadow: isDarkMode ? '0 4px 0 rgba(0,0,0,0.3)' : '0 4px 0 rgba(35,19,71,0.08)',
+                border: isDarkMode ? '1px solid #331C54' : 'none',
+              }}>
               <div className="w-16 h-16 rounded-2xl text-3xl flex items-center justify-center"
                 style={{background:av.bg, boxShadow:'0 3px 0 rgba(35,19,71,0.15)', fontSize:28, flexShrink:0}}>
                 {av.emoji}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-ink text-xl" style={{fontFamily:'"Fredoka",system-ui'}}>{child.nickname}</div>
-                <div className="text-xs text-ink/50 font-semibold mb-2" style={{fontFamily:'"Nunito",system-ui'}}>
+                <div className="font-bold text-xl" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>{child.nickname}</div>
+                <div className="text-xs font-semibold mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.5)'}}>
                   Nivel {child.currentLevel} · Mundo {worldLabel}
                 </div>
-                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-2.5 rounded-full overflow-hidden" style={{ background: isDarkMode ? '#140824' : '#F4F2FA' }}>
                   <div className="h-full rounded-full"
                     style={{width:`${Math.min(100,(totalStars%20)*5)}%`, background:'linear-gradient(90deg,#8E6BFF,#5A3BD1)', transition:'width 0.6s'}}/>
                 </div>
-                <div className="text-xs text-ink/40 mt-0.5 font-bold" style={{fontFamily:'"Nunito",system-ui'}}>
+                <div className="text-xs mt-0.5 font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#8B5CF6' : 'rgba(35,19,71,0.4)'}}>
                   {child.totalXP} XP
                 </div>
               </div>
@@ -418,7 +448,7 @@ export function ParentDashboard() {
         })()}
 
         {/* Key metrics */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Resumen</p>
+        <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>Resumen</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             {icon:'⭐', label:'Estrellas ganadas',    value:totalStars,    color:'#FFC83D', dark:'#B97808'},
@@ -426,49 +456,62 @@ export function ParentDashboard() {
             {icon:'👣', label:'Movimientos prom.',      value:avgMoves||'—', color:'#8E6BFF', dark:'#5A3BD1'},
             {icon:'💡', label:'Pistas usadas',      value:totalHints,    color:'#FF7B5C', dark:'#C73000'},
             {icon:'🏆', label:'Medallas ganadas',  value:progress?.badges.length??0, color:'#FF6FA8', dark:'#C73C77'},
-            {icon:'🌍', label:'Mundos visitados', value:['meadow','crystal','robo'].filter(w=>
+            {icon:'🌍', label:'Mundos visitados', value:['meadow','crystal','robo','ocean','volcano','space'].filter(w=>
               Object.keys(progress?.levelProgress??{}).some(l=>l.startsWith(w))).length, color:'#5BC5FF', dark:'#2890D0'},
           ].map(m => (
-            <div key={m.label} className="rounded-2xl p-3.5 bg-white flex items-center gap-3"
-              style={{boxShadow:'0 2px 0 rgba(35,19,71,0.07)'}}>
+            <div key={m.label} className="rounded-2xl p-3.5 flex items-center gap-3 transition-colors"
+              style={{
+                background: isDarkMode ? '#1E0F33' : '#fff',
+                boxShadow: isDarkMode ? '0 2px 0 rgba(0,0,0,0.2)' : '0 2px 0 rgba(35,19,71,0.07)',
+                border: isDarkMode ? '1px solid #331C54' : 'none',
+              }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
                 style={{background:m.color+'1A', boxShadow:`inset 0 -2px 0 ${m.dark}22`}}>
                 {m.icon}
               </div>
               <div>
-                <div className="text-xl font-bold text-ink" style={{fontFamily:'"Fredoka",system-ui'}}>{m.value}</div>
-                <div className="text-xs font-bold text-ink/45" style={{fontFamily:'"Nunito",system-ui'}}>{m.label}</div>
+                <div className="text-xl font-bold" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>{m.value}</div>
+                <div className="text-xs font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.45)'}}>{m.label}</div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Skills */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Habilidades en enfoque</p>
-        <div className="bg-white rounded-2xl p-4 space-y-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+        <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>Habilidades en enfoque</p>
+        <div className="rounded-2xl p-4 space-y-4 transition-colors"
+          style={{
+            background: isDarkMode ? '#1E0F33' : '#fff',
+            boxShadow: isDarkMode ? '0 3px 0 rgba(0,0,0,0.2)' : '0 3px 0 rgba(35,19,71,0.07)',
+            border: isDarkMode ? '1px solid #331C54' : 'none',
+          }}>
           {skills.map(s => (
             <div key={s.label}>
               <div className="flex justify-between mb-1.5">
-                <span className="text-sm font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>{s.label}</span>
+                <span className="text-sm font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>{s.label}</span>
                 <span className="text-sm font-bold" style={{color:s.color, fontFamily:'"Nunito",system-ui'}}>{s.value}%</span>
               </div>
-              <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-2.5 rounded-full overflow-hidden" style={{ background: isDarkMode ? '#140824' : '#gray-100' }}>
                 <div className="h-full rounded-full transition-all duration-700"
                   style={{width:`${s.value}%`, background:s.color}}/>
               </div>
             </div>
           ))}
           {puzzlesSolved === 0 && (
-            <p className="text-xs text-ink/35 italic text-center" style={{fontFamily:'"Nunito",system-ui'}}>
+            <p className="text-xs italic text-center" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA/60' : 'rgba(35,19,71,0.35)'}}>
               ¡Las habilidades crecen a medida que se resuelven rompecabezas!
             </p>
           )}
         </div>
 
         {/* AI Coach Premium Report */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>🤖 AI Coach: Reporte de Inteligencia y Desarrollo</p>
-        <div className="bg-white rounded-3xl p-5 border border-purple-100 flex flex-col gap-4 relative overflow-hidden"
-          style={{boxShadow:'0 8px 30px rgba(142,107,255,0.06), 0 3px 0 rgba(35,19,71,0.07)'}}>
+        <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>🤖 AI Coach: Reporte de Inteligencia y Desarrollo</p>
+        <div className="rounded-3xl p-5 flex flex-col gap-4 relative overflow-hidden transition-colors"
+          style={{
+            background: isDarkMode ? '#1E0F33' : '#fff',
+            border: isDarkMode ? '1px solid #3E1B6B' : '1px solid #F3E8FF',
+            boxShadow: isDarkMode ? '0 8px 30px rgba(0,0,0,0.3), 0 3px 0 rgba(0,0,0,0.4)' : '0 8px 30px rgba(142,107,255,0.06), 0 3px 0 rgba(35,19,71,0.07)',
+          }}>
           
           <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-purple-500/5 blur-xl pointer-events-none" />
           
@@ -477,8 +520,8 @@ export function ParentDashboard() {
               💡
             </div>
             <div>
-              <h4 className="text-ink font-bold text-base" style={{fontFamily:'"Fredoka",system-ui'}}>Análisis Cognitivo Escrito</h4>
-              <p className="text-ink/40 text-[10px] font-bold" style={{fontFamily:'"Nunito",system-ui'}}>METRICAS DE HEURÍSTICA DE JUEGO</p>
+              <h4 className="font-bold text-base" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>Análisis Cognitivo Escrito</h4>
+              <p className="text-[10px] font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>METRICAS DE HEURÍSTICA DE JUEGO</p>
             </div>
           </div>
 
@@ -487,9 +530,9 @@ export function ParentDashboard() {
             <div>
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-xs">📐</span>
-                <span className="text-xs font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>Lógica y Rotación Espacial:</span>
+                <span className="text-xs font-bold text-ink" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>Lógica y Rotación Espacial:</span>
               </div>
-              <p className="text-xs text-ink/65 leading-relaxed pl-5" style={{fontFamily:'"Nunito",system-ui'}}>
+              <p className="text-xs leading-relaxed pl-5" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#C0A0FF' : 'rgba(35,19,71,0.65)'}}>
                 {puzzlesSolved === 0 
                   ? 'Aún no hay datos de juego suficientes. Resuelve niveles para evaluar.'
                   : puzzlesSolved >= 10 
@@ -502,9 +545,9 @@ export function ParentDashboard() {
             <div>
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-xs">💪</span>
-                <span className="text-xs font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>Resiliencia Cognitiva (Tolerancia al Error):</span>
+                <span className="text-xs font-bold text-ink" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>Resiliencia Cognitiva (Tolerancia al Error):</span>
               </div>
-              <p className="text-xs text-ink/65 leading-relaxed pl-5" style={{fontFamily:'"Nunito",system-ui'}}>
+              <p className="text-xs leading-relaxed pl-5" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#C0A0FF' : 'rgba(35,19,71,0.65)'}}>
                 {puzzlesSolved === 0 
                   ? 'Completar niveles revelará los hábitos de superación ante obstáculos.'
                   : totalHints === 0 
@@ -516,7 +559,11 @@ export function ParentDashboard() {
             </div>
 
             {/* Off-screen recommendation plan */}
-            <div className="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 mt-2 relative">
+            <div className="p-4 rounded-2xl mt-2 relative border"
+              style={{
+                background: isDarkMode ? '#24133D' : '#F5F3FF',
+                borderColor: isDarkMode ? '#3E1B6B' : '#E9D5FF',
+              }}>
               <button
                 onClick={() => {
                   if ('speechSynthesis' in window) {
@@ -537,7 +584,7 @@ export function ParentDashboard() {
                 <span className="text-sm">🎲</span>
                 <span className="text-xs font-bold text-purple-700" style={{fontFamily:'"Fredoka",system-ui'}}>Plan de Actividad Fuera de Pantalla (Semanal)</span>
               </div>
-              <ul className="space-y-1.5 pl-4 list-disc text-xs text-ink/75 leading-relaxed" style={{fontFamily:'"Nunito",system-ui'}}>
+              <ul className="space-y-1.5 pl-4 list-disc text-xs leading-relaxed" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#C0A0FF' : 'rgba(35,19,71,0.75)'}}>
                 <li>
                   <strong>Tangrams o Bloques Físicos:</strong> Jugar a replicar siluetas del Tangram para trasladar la manipulación digital a una experiencia de tacto real tridimensional.
                 </li>
@@ -555,19 +602,24 @@ export function ParentDashboard() {
         {/* Recent activity */}
         {progress && Object.keys(progress.levelProgress).length > 0 && (
           <>
-            <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Actividad reciente</p>
-            <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+            <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>Actividad reciente</p>
+            <div className="rounded-2xl overflow-hidden transition-colors"
+              style={{
+                background: isDarkMode ? '#1E0F33' : '#fff',
+                boxShadow: isDarkMode ? '0 3px 0 rgba(0,0,0,0.2)' : '0 3px 0 rgba(35,19,71,0.07)',
+                border: isDarkMode ? '1px solid #331C54' : 'none',
+              }}>
               {Object.entries(progress.levelProgress).slice(-5).reverse().map(([lid,lp],i,arr) => (
                 <div key={lid} className="flex items-center gap-3 px-4 py-3"
-                  style={{borderBottom: i<arr.length-1 ? '1px solid #F0EEF6' : 'none'}}>
-                  <span className="text-2xl">{lid.includes('meadow')?'🌿':lid.includes('crystal')?'💎':'🤖'}</span>
+                  style={{borderBottom: i<arr.length-1 ? (isDarkMode ? '1px solid #2A174E' : '1px solid #F0EEF6') : 'none'}}>
+                  <span className="text-2xl">{lid.includes('meadow')?'🌿':lid.includes('crystal')?'💎':lid.includes('robo')?'🤖':lid.includes('ocean')?'🌊':lid.includes('volcano')?'🌋':'🚀'}</span>
                   <div className="flex-1">
-                    <div className="text-sm font-bold text-ink" style={{fontFamily:'"Nunito",system-ui'}}>
-                      {lid.replace('meadow-l','Pradera ').replace('crystal-l','Cueva ').replace('robo-l','Arrecife ')}
+                    <div className="text-sm font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#white' : '#231347'}}>
+                      {lid.replace('meadow-l','Pradera ').replace('crystal-l','Cueva ').replace('robo-l','Arrecife ').replace('ocean-l','Océano ').replace('volcano-l','Volcán ').replace('space-l','Espacio ')}
                     </div>
                     <StarRating stars={lp.stars} size={12}/>
                   </div>
-                  <span className="text-xs text-ink/35 font-bold" style={{fontFamily:'"Nunito",system-ui'}}>
+                  <span className="text-xs font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#purple-300/60' : 'rgba(35,19,71,0.35)'}}>
                     {new Date(lp.completedAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -577,28 +629,33 @@ export function ParentDashboard() {
         )}
 
         {/* Parent tools */}
-        <p className="text-xs font-bold uppercase tracking-wide text-ink/40 mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui'}}>Herramientas de padres</p>
-        <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+        <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>Herramientas de padres</p>
+        <div className="rounded-2xl overflow-hidden transition-colors"
+          style={{
+            background: isDarkMode ? '#1E0F33' : '#fff',
+            boxShadow: isDarkMode ? '0 3px 0 rgba(0,0,0,0.2)' : '0 3px 0 rgba(35,19,71,0.07)',
+            border: isDarkMode ? '1px solid #331C54' : 'none',
+          }}>
           {[
-            {icon:'👥', label:'Gestionar perfiles',  sub:'Añade, edita o elimina perfiles de niños', action:()=>navigate('child-select')},
-            {icon:'🔄', label:'Restablecer progreso',    sub:'Borra todas las estrellas y medallas de este perfil', action:()=>setConfirmReset(true), danger:true},
-            {icon:'⏱',  label:'Tiempo en pantalla',       sub:'Próximamente en la siguiente actualización', action:()=>{}, disabled:true},
-            {icon:'🔒', label:'Seguridad y privacidad',  sub:'Ver política de datos infantiles', action:()=>navigate('settings')},
+            {icon:'👥', label:'Gestionar perfiles',  sub:'Añade, edita o elimina perfiles de niños', action:()=>navigate('child-select'), disabled: false},
+            {icon:'🔄', label:'Restablecer progreso',    sub:'Borra todas las estrellas y medallas de este perfil', action:()=>setConfirmReset(true), danger:true, disabled: false},
+            {icon:'⏱',  label:'Tiempo en pantalla',       sub: child?.dailyTimeLimit ? `Límite activo: ${child.dailyTimeLimit} minutos` : 'Sin límite diario activo (Toca para configurar)', action:()=>setShowScreenTime(true), disabled: false},
+            {icon:'🔒', label:'Seguridad y privacidad',  sub:'Ver política de datos infantiles', action:()=>navigate('settings'), disabled: false},
           ].map((t,i,arr) => (
             <button key={t.label} onClick={t.action} disabled={t.disabled}
-              className="flex items-center gap-3 w-full px-4 py-3.5 text-left transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3.5 text-left transition-colors active:bg-purple-100/10"
               style={{
-                borderBottom: i<arr.length-1 ? '1px solid #F0EEF6' : 'none',
+                borderBottom: i<arr.length-1 ? (isDarkMode ? '1px solid #2A174E' : '1px solid #F0EEF6') : 'none',
                 opacity: t.disabled ? 0.45 : 1,
               }}>
               <span className="text-xl w-8 text-center">{t.icon}</span>
               <div className="flex-1">
-                <div className={`font-bold text-sm ${t.danger ? 'text-red-600' : 'text-ink'}`} style={{fontFamily:'"Nunito",system-ui'}}>{t.label}</div>
-                <div className="text-xs text-ink/45" style={{fontFamily:'"Nunito",system-ui'}}>{t.sub}</div>
+                <div className={`font-bold text-sm ${t.danger ? 'text-red-600' : (isDarkMode ? 'text-white' : 'text-ink')}`} style={{fontFamily:'"Nunito",system-ui'}}>{t.label}</div>
+                <div className="text-xs" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.45)'}}>{t.sub}</div>
               </div>
               {!t.disabled && (
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 6l6 6-6 6" stroke="rgba(35,19,71,0.3)" strokeWidth="2.5" strokeLinecap="round"/>
+                  <path d="M9 6l6 6-6 6" stroke={isDarkMode ? '#8B5CF6' : 'rgba(35,19,71,0.3)'} strokeWidth="2.5" strokeLinecap="round"/>
                 </svg>
               )}
             </button>
@@ -606,33 +663,120 @@ export function ParentDashboard() {
         </div>
 
         {/* Safety note */}
-        <div className="mt-4 p-4 rounded-2xl" style={{background:'rgba(63,208,158,0.08)', border:'1px solid rgba(63,208,158,0.2)'}}>
-          <p className="text-xs font-semibold text-mint-dark leading-relaxed" style={{fontFamily:'"Nunito",system-ui', color:'#1F7A5A'}}>
+        <div className="mt-4 p-4 rounded-2xl"
+          style={{
+            background: isDarkMode ? 'rgba(63,208,158,0.04)' : 'rgba(63,208,158,0.08)',
+            border: isDarkMode ? '1px solid rgba(63,208,158,0.12)' : '1px solid rgba(63,208,158,0.2)'
+          }}>
+          <p className="text-xs font-semibold leading-relaxed" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#34D399' : '#1F7A5A'}}>
             🔒 BRAIN BUGS recopila datos mínimos de los niños: solo un apodo, avatar y rango de edad opcional. No se requiere correo electrónico ni información personal de los niños. Todo el contenido está diseñado especialmente para edades de 5 a 9 años.
           </p>
         </div>
 
         <button onClick={signOut}
-          className="w-full mt-4 py-3 rounded-2xl font-bold text-center text-red-500"
-          style={{fontFamily:'"Fredoka",system-ui', background:'#FFF0F0', boxShadow:'0 3px 0 rgba(200,0,0,0.07)'}}>
+          className="w-full mt-4 py-3 rounded-2xl font-bold text-center transition-all active:scale-95"
+          style={{
+            fontFamily:'"Fredoka",system-ui',
+            background: isDarkMode ? '#330808' : '#FFF0F0',
+            color: '#EF4444',
+            border: isDarkMode ? '1px solid #581C1C' : 'none',
+            boxShadow: isDarkMode ? 'none' : '0 3px 0 rgba(200,0,0,0.07)'
+          }}>
           Cerrar sesión
         </button>
         <div className="h-6"/>
       </div>
 
+      {/* Screen Time Limit Setting Modal */}
+      {showScreenTime && child && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60" onClick={() => setShowScreenTime(false)}>
+          <div className="rounded-3xl p-6 w-full max-w-xs text-center border transition-all" onClick={e => e.stopPropagation()}
+            style={{
+              background: isDarkMode ? '#1E0F33' : '#white',
+              backgroundColor: isDarkMode ? '#1E0F33' : '#white',
+              color: isDarkMode ? '#white' : '#231347',
+              borderColor: isDarkMode ? '#331C54' : '#E9D5FF',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            }}>
+            <div className="text-4xl mb-3">⏱</div>
+            <h3 className="text-xl font-bold mb-1" style={{ fontFamily: '"Fredoka",system-ui', color: isDarkMode ? '#white' : '#231347' }}>
+              Límite de Tiempo Diario
+            </h3>
+            <p className="text-xs font-semibold mb-4" style={{ fontFamily: '"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.5)' }}>
+              Establece el tiempo máximo que <strong>{child.nickname}</strong> puede jugar al día.
+            </p>
+
+            <div className="flex flex-col gap-2 mb-6">
+              {[
+                { label: '🔓 Sin límite', value: 0 },
+                { label: '⏱ 15 minutos', value: 15 },
+                { label: '⏱ 30 minutos', value: 30 },
+                { label: '⏱ 45 minutos', value: 45 },
+                { label: '⏱ 60 minutos', value: 60 },
+              ].map(opt => {
+                const active = (child.dailyTimeLimit ?? 0) === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      updateChildTimeLimit(child.id, opt.value);
+                      sound.playSnap();
+                    }}
+                    className="w-full py-3 px-4 rounded-xl font-bold transition-all text-left flex items-center justify-between"
+                    style={{
+                      fontFamily: '"Fredoka",system-ui',
+                      background: active
+                        ? 'linear-gradient(180deg,#8E6BFF,#5A3BD1)'
+                        : isDarkMode ? '#2D174E' : '#F4F2FA',
+                      color: active ? '#fff' : isDarkMode ? '#D8B4FE' : '#231347',
+                      border: active ? 'none' : '1px solid transparent',
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                    {active && <span className="text-white font-bold">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowScreenTime(false)}
+              className="w-full py-3 rounded-2xl font-bold text-white transition-all active:scale-95"
+              style={{
+                background: 'linear-gradient(180deg,#3FD09E,#1F9A6E)',
+                fontFamily: '"Fredoka",system-ui',
+                boxShadow: '0 4px 0 #156B4D',
+              }}
+            >
+              ¡Guardar Cambios! 🌟
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Reset confirmation */}
       {confirmReset && child && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/55">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center">
+          <div className="rounded-3xl p-6 w-full max-w-xs text-center border"
+            style={{
+              background: isDarkMode ? '#1E0F33' : '#white',
+              backgroundColor: isDarkMode ? '#1E0F33' : '#white',
+              borderColor: isDarkMode ? '#331C54' : 'transparent',
+              color: isDarkMode ? '#white' : '#231347',
+            }}>
             <div className="text-4xl mb-3">⚠️</div>
-            <h3 className="text-lg font-bold text-ink mb-2" style={{fontFamily:'"Fredoka",system-ui'}}>¿Restablecer a {child.nickname}?</h3>
-            <p className="text-sm text-ink/60 font-semibold mb-5" style={{fontFamily:'"Nunito",system-ui'}}>
+            <h3 className="text-lg font-bold mb-2" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#white' : '#231347'}}>¿Restablecer a {child.nickname}?</h3>
+            <p className="text-sm font-semibold mb-5" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.6)'}}>
               Todas las estrellas, medallas y el progreso de nivel se borrarán permanentemente.
             </p>
             <div className="flex gap-2">
               <button onClick={()=>setConfirmReset(false)}
-                className="flex-1 py-3 rounded-2xl font-bold bg-gray-100 text-ink active:scale-95"
-                style={{fontFamily:'"Fredoka",system-ui'}}>Cancelar</button>
+                className="flex-1 py-3 rounded-2xl font-bold active:scale-95 transition-all"
+                style={{
+                  fontFamily:'"Fredoka",system-ui',
+                  background: isDarkMode ? '#2D174E' : '#E5E7EB',
+                  color: isDarkMode ? '#D8B4FE' : '#231347'
+                }}>Cancelar</button>
               <button onClick={()=>{ resetChildProgress(child.id); setConfirmReset(false); }}
                 className="flex-1 py-3 rounded-2xl font-bold text-white bg-red-500 active:scale-95"
                 style={{fontFamily:'"Fredoka",system-ui', boxShadow:'0 4px 0 #B02020'}}>Restablecer</button>

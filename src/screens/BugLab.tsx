@@ -5,7 +5,7 @@ import type { BugKind, WorldId } from '../types';
 import BugSvg from '../components/BugSvg';
 import BottomNav from '../components/BottomNav';
 import { sound } from '../lib/sound';
-import { BUG_COLORS } from '../data/characters';
+import { BUG_COLORS, PIECE_DEFS } from '../data/characters';
 
 // Standard kinds of bugs for pieces
 const BUG_KINDS: BugKind[] = ['pip', 'bobo', 'zig', 'mo', 'rose'];
@@ -19,6 +19,115 @@ const BUG_INFO: Record<BugKind, { name: string; icon: string; shapeLabel: string
   rose: { name: 'Rose', icon: '🌸', shapeLabel: 'Línea de 2 celdas' },
   coach: { name: 'Entrenador', icon: '🎓', shapeLabel: 'Línea vertical' },
 };
+
+// ─── Backtracking solver to check level solvability ───────────
+function checkSolvability(
+  cols: number,
+  rows: number,
+  blocked: [number, number][],
+  locks: [number, number, BugKind][],
+  selectedPieces: BugKind[]
+): boolean {
+  // 1. Quick size check
+  const piecesSize = selectedPieces.reduce((sum, kind) => {
+    if (kind === 'rose') return sum + 2;
+    if (kind === 'zig' || kind === 'mo') return sum + 4;
+    return sum + 3; // pip, bobo, coach
+  }, 0);
+  const playableSize = cols * rows - blocked.length;
+  if (piecesSize !== playableSize) return false;
+  if (selectedPieces.length === 0) return true;
+
+  // 2. Initialize board state
+  const board = Array.from({ length: rows }, () => Array(cols).fill(false));
+  for (const [bc, br] of blocked) {
+    if (br >= 0 && br < rows && bc >= 0 && bc < cols) {
+      board[br][bc] = true;
+    }
+  }
+
+  // Map of locks
+  const lockMap: Record<string, BugKind> = {};
+  for (const [lc, lr, kind] of locks) {
+    lockMap[`${lc},${lr}`] = kind;
+  }
+
+  // Precompute unique rotated shapes for each selected piece
+  const pieces = selectedPieces.map((kind) => {
+    const baseShape = PIECE_DEFS[kind]?.baseShape || [];
+    const unique: [number, number][][] = [];
+    const seen = new Set<string>();
+
+    let shape = baseShape;
+    for (let r = 0; r < 4; r++) {
+      const key = JSON.stringify(shape);
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(shape);
+      }
+      // Rotate shape clockwise
+      shape = shape.map(([c, r]) => [-r, c] as [number, number]);
+      const minC = Math.min(...shape.map(([c]) => c));
+      const minR = Math.min(...shape.map(([, r]) => r));
+      shape = shape.map(([c, r]) => [c - minC, r - minR]);
+    }
+    return { kind, shapes: unique };
+  });
+
+  let steps = 0;
+  const maxSteps = 15000; // safety roof
+
+  function backtrack(index: number): boolean {
+    if (index === pieces.length) return true;
+    steps++;
+    if (steps > maxSteps) return false;
+
+    const { kind, shapes } = pieces[index];
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        for (const shape of shapes) {
+          let fits = true;
+          for (const [dc, dr] of shape) {
+            const nc = c + dc;
+            const nr = r + dr;
+            if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) {
+              fits = false;
+              break;
+            }
+            if (board[nr][nc]) {
+              fits = false;
+              break;
+            }
+            const cellLock = lockMap[`${nc},${nr}`];
+            if (cellLock && cellLock !== kind) {
+              fits = false;
+              break;
+            }
+          }
+
+          if (fits) {
+            // Apply placement
+            for (const [dc, dr] of shape) {
+              board[r + dr][c + dc] = true;
+            }
+
+            // Recurse to next piece
+            if (backtrack(index + 1)) return true;
+
+            // Remove placement (backtrack)
+            for (const [dc, dr] of shape) {
+              board[r + dr][c + dc] = false;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  return backtrack(0);
+}
 
 export default function BugLab() {
   const { currentChild, navigate } = useApp();
@@ -55,6 +164,12 @@ export default function BugLab() {
     }
     return arr;
   }, [cols, rows]);
+
+  // Reactive Solvability Evaluation
+  const isSolvable = useMemo(() => {
+    if (selectedPieces.length === 0) return false;
+    return checkSolvability(cols, rows, blocked, locks, selectedPieces);
+  }, [cols, rows, blocked, locks, selectedPieces]);
 
   if (!currentChild) return null;
 
@@ -143,6 +258,7 @@ export default function BugLab() {
   };
 
   const handleCopyCode = () => {
+    if (!isSolvable) return;
     if (selectedPieces.length === 0) {
       setErrorMsg('⚠️ Debes incluir al menos un bicho en el inventario.');
       sound.playError();
@@ -157,6 +273,7 @@ export default function BugLab() {
   };
 
   const handlePlayLevel = () => {
+    if (!isSolvable) return;
     if (selectedPieces.length === 0) {
       setErrorMsg('⚠️ Añade al menos un bicho para poder jugar.');
       sound.playError();
@@ -257,12 +374,13 @@ export default function BugLab() {
         </div>
         <button
           onClick={handlePlayLevel}
-          className="px-4 py-1.5 rounded-full text-xs font-bold text-ink active:scale-95 transition-all"
+          disabled={!isSolvable}
+          className="px-4 py-1.5 rounded-full text-xs font-bold text-ink active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
           style={{
-            background: 'linear-gradient(180deg, #3FD09E, #1F9A6E)',
+            background: isSolvable ? 'linear-gradient(180deg, #3FD09E, #1F9A6E)' : 'rgba(255,255,255,0.08)',
             fontFamily: '"Fredoka",system-ui',
             color: '#fff',
-            boxShadow: '0 3px 0 #125B41',
+            boxShadow: isSolvable ? '0 3px 0 #125B41' : 'none',
           }}
         >
           ▶ JUGAR
@@ -301,6 +419,16 @@ export default function BugLab() {
             })}
           </div>
         </div>
+
+        {/* Dynamic Solvability Warn Banner */}
+        {!isSolvable && selectedPieces.length > 0 && (
+          <div className="bg-red-500/15 border border-red-500/25 p-3 rounded-2xl flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <p className="text-red-300 text-xs font-bold leading-relaxed text-left" style={{ fontFamily: '"Nunito",system-ui' }}>
+              ¡Uy! Este rompecabezas no se puede resolver en su estado actual. Mueve algunas piedras, cambia los bichos o ajusta las cerraduras para habilitarlo.
+            </p>
+          </div>
+        )}
 
         {/* Step 2: Interactive grid canvas */}
         <div>
@@ -491,7 +619,8 @@ export default function BugLab() {
           <div className="flex gap-2 mb-4">
             <button
               onClick={handleCopyCode}
-              className="flex-1 py-3 rounded-xl font-bold text-xs active:scale-95 transition-all text-center flex items-center justify-center gap-1.5"
+              disabled={!isSolvable}
+              className="flex-1 py-3 rounded-xl font-bold text-xs active:scale-95 transition-all text-center flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
               style={{
                 background: copySuccess
                   ? 'linear-gradient(180deg, #3FD09E, #1F9A6E)'
@@ -504,12 +633,13 @@ export default function BugLab() {
             </button>
             <button
               onClick={handlePlayLevel}
-              className="flex-1 py-3 rounded-xl font-bold text-xs active:scale-95 transition-all text-center"
+              disabled={!isSolvable}
+              className="flex-1 py-3 rounded-xl font-bold text-xs active:scale-95 transition-all text-center disabled:opacity-40 disabled:pointer-events-none"
               style={{
-                background: 'linear-gradient(180deg, #FFD55E, #FFB23A)',
-                color: '#231347',
+                background: isSolvable ? 'linear-gradient(180deg, #FFD55E, #FFB23A)' : 'rgba(255,255,255,0.08)',
+                color: isSolvable ? '#231347' : '#fff',
                 fontFamily: '"Fredoka",system-ui',
-                boxShadow: '0 4px 0 #B97808',
+                boxShadow: isSolvable ? '0 4px 0 #B97808' : 'none',
               }}
             >
               ▶ JUGAR NIVEL

@@ -243,11 +243,74 @@ const ps3: Puzzle = {
   maxMoves:18,
 };
 
+// Ocean 4 & 5
+const po4: Puzzle = {
+  id:'ocean-4', name:'Jardín de Anémonas', description:'¡Ayuda a los bichitos a cubrir las conchas del arrecife!',
+  worldId:'ocean', difficulty:'medium', cols:5, rows:4,
+  blockedCells:[[0,0],[4,3]],
+  bugLocks: [[1, 2, 'bobo']],
+  pieces:[makePiece('mo','_a'), makePiece('zig','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('rose','_a'), makePiece('rose','_b')],
+  hints:['El bicho en forma de L tiene un lugar especial marcado con su silueta.', 'Los bichos grandes como el cuadrado y el zig-zag deben ocupar el centro.', 'Los bichitos de dos celdas completan los bordes.'],
+  maxMoves:12,
+};
+
+const po5: Puzzle = {
+  id:'ocean-5', name:'Abismo Coralino', description:'¡Cuidado con el coral profundo!',
+  worldId:'ocean', difficulty:'hard', cols:5, rows:5,
+  blockedCells:[[2,2]],
+  bugLocks: [[0, 0, 'mo'], [4, 4, 'zig']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('pip','_a'), makePiece('coach','_a'), makePiece('rose','_a')],
+  hints:['El abismo central está bloqueado por coral denso.', 'Los dos cuadrados Mo se ubican en la parte superior e inferior.', 'Usa las piezas largas de Coach y Pip de forma vertical.'],
+  maxMoves:16,
+};
+
+// Volcano 4 & 5
+const pv4: Puzzle = {
+  id:'volcano-4', name:'Río de Magma', description:'¡Camina con cuidado sobre las rocas volcánicas!',
+  worldId:'volcano', difficulty:'hard', cols:6, rows:4,
+  blockedCells:[[0, 0], [1, 1], [4, 2], [5, 3]],
+  bugLocks: [[2, 2, 'mo']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('coach','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['El río de magma fluye en diagonal bloqueando cuatro celdas.', 'Coloca el bicho cuadrado en el centro sobre su silueta.', 'Los bichos en forma de L y zig-zag encajan a los lados.'],
+  maxMoves:14,
+};
+
+const pv5: Puzzle = {
+  id:'volcano-5', name:'Gran Caldera', description:'¡El último desafío ardiente del volcán!',
+  worldId:'volcano', difficulty:'hard', cols:6, rows:5,
+  blockedCells:[[2, 2], [3, 2]],
+  bugLocks: [[0, 0, 'coach'], [5, 4, 'bobo']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('coach','_a'), makePiece('pip','_a'), makePiece('bobo','_a'), makePiece('coach','_b')],
+  hints:['El centro del volcán está muy caliente y bloqueado por magma.', 'Alinea los bichos grandes verticalmente a lo largo de los bordes.', 'Usa las esquinas para encajar las piezas L y de tres celdas.'],
+  maxMoves:18,
+};
+
+// Space 4 & 5
+const ps4: Puzzle = {
+  id:'space-4', name:'Constelación Perdida', description:'¡El misterio del cosmos te espera!',
+  worldId:'space', difficulty:'hard', cols:5, rows:5,
+  blockedCells:[[0, 4], [4, 0], [2, 2]],
+  bugLocks: [[1, 1, 'zig']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('bobo','_a'), makePiece('coach','_a'), makePiece('rose','_a'), makePiece('rose','_b')],
+  hints:['Tres anomalías espaciales bloquean el paso de las estrellas.', 'Coloca a Zig en el centro bloqueado.', 'Los dos cuadrados se sitúan en esquinas opuestas libres.'],
+  maxMoves:14,
+};
+
+const ps5: Puzzle = {
+  id:'space-5', name:'El Fin del Universo', description:'¡El último desafío ardiente del espacio!',
+  worldId:'space', difficulty:'hard', cols:6, rows:5,
+  blockedCells:[[0, 0], [5, 0], [0, 4], [5, 4], [2, 2], [3, 2]],
+  bugLocks: [[1, 2, 'mo'], [4, 2, 'zig']],
+  pieces:[makePiece('mo','_a'), makePiece('mo','_b'), makePiece('zig','_a'), makePiece('zig','_b'), makePiece('coach','_a'), makePiece('bobo','_a'), makePiece('rose','_a')],
+  hints:['¡El último nivel! Las cuatro esquinas y el centro están bloqueados.', 'Coloca los bichos en sus respectivos cierres espaciales.', 'Organiza las formas grandes primero y rellena con Rose y Coach.'],
+  maxMoves:20,
+};
+
 // Expand PUZZLES record
 Object.assign(PUZZLES, {
-  'ocean-1': po1, 'ocean-2': po2, 'ocean-3': po3,
-  'volcano-1': pv1, 'volcano-2': pv2, 'volcano-3': pv3,
-  'space-1': ps1, 'space-2': ps2, 'space-3': ps3,
+  'ocean-1': po1, 'ocean-2': po2, 'ocean-3': po3, 'ocean-4': po4, 'ocean-5': po5,
+  'volcano-1': pv1, 'volcano-2': pv2, 'volcano-3': pv3, 'volcano-4': pv4, 'volcano-5': pv5,
+  'space-1': ps1, 'space-2': ps2, 'space-3': ps3, 'space-4': ps4, 'space-5': ps5,
 });
 
 export default PUZZLES;

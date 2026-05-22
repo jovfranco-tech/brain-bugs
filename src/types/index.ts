@@ -36,6 +36,7 @@ export interface ChildProfile {
   currentWorld: WorldId;
   unlockedAccessories?: string[];
   activeAccessoryId?: string | null;
+  dailyTimeLimit?: number; // In minutes, optional/undefined if unlimited
 }
 
 // ─── World & Level ────────────────────────────────────────────

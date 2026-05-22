@@ -10,9 +10,10 @@ import Gameplay from './screens/Gameplay';
 import { VictoryScreen, RewardsScreen, ParentDashboard, SettingsScreen } from './screens/OtherScreens';
 import BugLab from './screens/BugLab';
 import AccessoryStore from './screens/AccessoryStore';
+import ScreenTimeBlockerOverlay from './components/ScreenTimeBlockerOverlay';
 
 function AppRouter() {
-  const { screen } = useApp();
+  const { screen, isScreenTimeLocked } = useApp();
 
   const renderScreen = () => {
     switch (screen) {
@@ -49,6 +50,7 @@ function AppRouter() {
           {renderScreen()}
         </motion.div>
       </AnimatePresence>
+      {isScreenTimeLocked && <ScreenTimeBlockerOverlay />}
     </div>
   );
 }
@@ -60,4 +62,5 @@ export default function App() {
     </AppProvider>
   );
 }
+
 

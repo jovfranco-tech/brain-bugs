@@ -59,6 +59,7 @@ function mapChildToLocal(row: any): ChildProfile {
     currentWorld: row.current_world as WorldId,
     unlockedAccessories: row.unlocked_accessories || [],
     activeAccessoryId: row.active_accessory_id || null,
+    dailyTimeLimit: row.daily_time_limit || 0,
   };
 }
 
@@ -77,6 +78,7 @@ function mapChildToDb(c: ChildProfile) {
     current_world: c.currentWorld,
     unlocked_accessories: c.unlockedAccessories || [],
     active_accessory_id: c.activeAccessoryId || null,
+    daily_time_limit: c.dailyTimeLimit || 0,
   };
 }
 
@@ -139,7 +141,10 @@ interface AppContextValue {
   setVictoryData: (d: VictoryData | null) => void;
   unlockAccessory: (childId: string, accessoryId: string, costXP: number) => void;
   equipAccessory: (childId: string, accessoryId: string | null) => void;
-
+  // Screen time control
+  screenTimeRemaining: number | null;
+  isScreenTimeLocked: boolean;
+  updateChildTimeLimit: (childId: string, limitMinutes: number) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -157,6 +162,46 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
   const [screenParams, setSP]           = useState<Record<string, string>>({});
   const [history, setHistory]           = useState<Array<{ screen: Screen; params: Record<string, string> }>>([]);
   const [victoryData, setVD]            = useState<VictoryData | null>(null);
+  const [screenTimeRemaining, setScreenTimeRemaining] = useState<number | null>(null);
+  const [isScreenTimeLocked, setIsScreenTimeLocked] = useState(false);
+
+  // Screen time countdown timer
+  useEffect(() => {
+    if (screenTimeRemaining === null || isScreenTimeLocked) return;
+    if (screenTimeRemaining <= 0) {
+      setIsScreenTimeLocked(true);
+      return;
+    }
+    const timer = setInterval(() => {
+      setScreenTimeRemaining(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          setIsScreenTimeLocked(true);
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [screenTimeRemaining, isScreenTimeLocked]);
+
+  // Initialize timer on load/profile select
+  useEffect(() => {
+    if (currentChildId) {
+      const child = childrenList.find(c => c.id === currentChildId);
+      if (child && child.dailyTimeLimit && child.dailyTimeLimit > 0) {
+        setScreenTimeRemaining(child.dailyTimeLimit * 60);
+        setIsScreenTimeLocked(false);
+      } else {
+        setScreenTimeRemaining(null);
+        setIsScreenTimeLocked(false);
+      }
+    } else {
+      setScreenTimeRemaining(null);
+      setIsScreenTimeLocked(false);
+    }
+  }, [currentChildId, childrenList]);
 
   const currentChild = currentChildId ? (childrenList.find(c => c.id === currentChildId) ?? null) : null;
 
@@ -251,12 +296,14 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
   // ─── Navigation ──────────────────────────────────────────────
   const navigate = useCallback((newScreen: Screen, params: Record<string, string> = {}) => {
+    sound.playClick();
     setHistory(h => [...h, { screen, params: screenParams }]);
     setScreen(newScreen);
     setSP(params);
   }, [screen, screenParams]);
 
   const goBack = useCallback(() => {
+    sound.playClick();
     const prev = history[history.length - 1];
     if (prev) {
       setScreen(prev.screen);
@@ -485,6 +532,33 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     }
   }, []);
 
+  const updateChildTimeLimit = useCallback((childId: string, limitMinutes: number) => {
+    const child = getChildById(childId);
+    if (child) {
+      const updated: ChildProfile = {
+        ...child,
+        dailyTimeLimit: limitMinutes,
+      };
+      saveChild(updated);
+      setChildrenList(prev => prev.map(c => c.id === childId ? updated : c));
+
+      if (currentChildId === childId) {
+        if (limitMinutes > 0) {
+          setScreenTimeRemaining(limitMinutes * 60);
+          setIsScreenTimeLocked(false);
+        } else {
+          setScreenTimeRemaining(null);
+          setIsScreenTimeLocked(false);
+        }
+      }
+
+      if (db) {
+        updateDoc(doc(db, 'children', childId), mapChildToDb(updated))
+          .catch(error => console.error('Error updating child time limit:', error));
+      }
+    }
+  }, [currentChildId]);
+
 
   // ─── Game progress ────────────────────────────────────────────
   const getChildProgress = useCallback((childId?: string) => {
@@ -565,6 +639,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     getChildProgress, completeLevel, setCurrentLevel,
     victoryData, setVictoryData: setVD,
     unlockAccessory, equipAccessory,
+    screenTimeRemaining, isScreenTimeLocked, updateChildTimeLimit
   };
 
   return <AppContext.Provider value={value}>{childNodes}</AppContext.Provider>;

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { WorldId, Puzzle, PuzzlePiece, Placement, BoardCell, BugKind } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { PUZZLES } from '../data/puzzles';
@@ -171,6 +171,18 @@ function decodeLevelCode(code: string): any {
   }
 }
 
+// Particle interface
+interface Particle {
+  id: number;
+  startX: number;
+  startY: number;
+  destX: number;
+  destY: number;
+  color: string;
+  emoji: string;
+  size: number;
+}
+
 // ─── Main Gameplay Screen ─────────────────────────────────────
 export default function Gameplay() {
   const { navigate, screenParams, currentChild, completeLevel, setVictoryData } = useApp();
@@ -248,10 +260,14 @@ export default function Gameplay() {
   const [solved,       setSolved]      = useState(false);
   const [solveGlow,    setSolveGlow]   = useState(false);
 
+  // Particle bursts state
+  const [particles, setParticles] = useState<Particle[]>([]);
+
   // ── Drag state ──────────────────────────────────────────────
   const [dragPieceId, setDragPieceId] = useState<string | null>(null);
   const [ghostPos,    setGhostPos]    = useState({ x: 0, y: 0 });
   const [hoverCell,   setHoverCell]   = useState<{ col: number; row: number } | null>(null);
+  const [boardRect,   setBoardRect]   = useState<DOMRect | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
   const getRotation = (id: string): 0|1|2|3 => (rotations[id] ?? 0) as 0|1|2|3;
@@ -259,6 +275,13 @@ export default function Gameplay() {
   const CELL_SIZE = puzzle
     ? Math.min(Math.floor((340 - 12) / puzzle.cols), Math.floor(248 / puzzle.rows), 56)
     : 44;
+
+  // Initialize board rect when dragging
+  useEffect(() => {
+    if (boardRef.current && dragPieceId) {
+      setBoardRect(boardRef.current.getBoundingClientRect());
+    }
+  }, [dragPieceId]);
 
   // Initial coach message
   useEffect(() => {
@@ -270,6 +293,28 @@ export default function Gameplay() {
     if (!puzzle || solved) return;
     setCoachMsg(coachHint(puzzle, available, placements, moves, hintsUsed, failCount));
   }, [moves, hintsUsed, failCount, available.length, solved]);
+
+  // Particle spawner helper
+  const spawnParticles = useCallback((startX: number, startY: number) => {
+    const newParticles: Particle[] = [];
+    const emojis = ['✨', '🔴', '⭐', '💥', '💨'];
+    const colors = ['#FF5050', '#FF7B5C', '#FFD55E', '#8E6BFF'];
+    for (let i = 0; i < 14; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 80 + 40;
+      newParticles.push({
+        id: Date.now() + i + Math.random(),
+        startX,
+        startY,
+        destX: Math.cos(angle) * distance,
+        destY: Math.sin(angle) * distance + 30, // gravity curve effect
+        color: colors[Math.floor(Math.random() * colors.length)],
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        size: Math.floor(Math.random() * 10) + 12,
+      });
+    }
+    setParticles(prev => [...prev, ...newParticles]);
+  }, []);
 
   // ── Placement logic ──────────────────────────────────────────
   const tryPlace = useCallback((pieceId: string, col: number, row: number): boolean => {
@@ -319,7 +364,6 @@ export default function Gameplay() {
     return true;
   }, [solved, puzzle, board, available, rotations, moves, hintsUsed, levelId, worldId]);
 
-
   // ── Drag handling ────────────────────────────────────────────
   const getCellFromPoint = useCallback((clientX: number, clientY: number) => {
     if (!boardRef.current || !puzzle) return null;
@@ -345,29 +389,34 @@ export default function Gameplay() {
     setHoverCell(getCellFromPoint(e.clientX, e.clientY));
   }, [dragPieceId, getCellFromPoint]);
 
+  const triggerShake = useCallback((pieceId: string, clientX?: number, clientY?: number) => {
+    sound.playError();
+    setShakeId(pieceId);
+    setFailCount(n => n + 1);
+    if (clientX !== undefined && clientY !== undefined) {
+      spawnParticles(clientX, clientY);
+    }
+    setTimeout(() => setShakeId(null), 420);
+  }, [spawnParticles]);
+
   const endDrag = useCallback((e: React.PointerEvent) => {
     if (!dragPieceId) return;
     const cell = getCellFromPoint(e.clientX, e.clientY);
     if (cell) {
       const ok = tryPlace(dragPieceId, cell.col, cell.row);
-      if (!ok) triggerShake(dragPieceId);
+      if (!ok) triggerShake(dragPieceId, e.clientX, e.clientY);
+    } else {
+      triggerShake(dragPieceId, e.clientX, e.clientY);
     }
     setDragPieceId(null);
     setHoverCell(null);
-  }, [dragPieceId, getCellFromPoint, tryPlace]);
+  }, [dragPieceId, getCellFromPoint, tryPlace, triggerShake]);
 
-  const onBoardClick = useCallback((col: number, row: number) => {
+  const onBoardClick = useCallback((e: React.MouseEvent, col: number, row: number) => {
     if (!selected || dragPieceId || solved) return;
     const ok = tryPlace(selected, col, row);
-    if (!ok) triggerShake(selected);
-  }, [selected, dragPieceId, solved, tryPlace]);
-
-  const triggerShake = useCallback((pieceId: string) => {
-    sound.playError();
-    setShakeId(pieceId);
-    setFailCount(n => n + 1);
-    setTimeout(() => setShakeId(null), 420);
-  }, []);
+    if (!ok) triggerShake(selected, e.clientX, e.clientY);
+  }, [selected, dragPieceId, solved, tryPlace, triggerShake]);
 
   // ── Controls ──────────────────────────────────────────────────
   const rotatePiece = useCallback(() => {
@@ -459,6 +508,22 @@ export default function Gameplay() {
   const ghostW     = dragPiece ? (Math.max(...dragShape.map(([c]) => c)) + 1) * CELL_SIZE : 0;
   const ghostH     = dragPiece ? (Math.max(...dragShape.map(([,r]) => r)) + 1) * CELL_SIZE : 0;
 
+  // Snapped coordinates math logic
+  const ghostTargetPos = useMemo(() => {
+    if (hoverCell && boardRect && dragPiece) {
+      return {
+        x: boardRect.left + hoverCell.col * CELL_SIZE,
+        y: boardRect.top + hoverCell.row * CELL_SIZE,
+        snapped: true
+      };
+    }
+    return {
+      x: ghostPos.x - ghostW / 2,
+      y: ghostPos.y - ghostH / 2,
+      snapped: false
+    };
+  }, [hoverCell, boardRect, ghostPos, ghostW, ghostH, CELL_SIZE, dragPiece]);
+
   const starPreview = moves > 0 ? calcStars(moves + 1, puzzle.maxMoves) : 3;
   const levelLabel = levelId.startsWith('daily-')
     ? 'Desafío Diario'
@@ -546,7 +611,7 @@ export default function Gameplay() {
               const inPreview = previewData.cells.has(key);
               return (
                 <div key={key} style={{ width:CELL_SIZE, height:CELL_SIZE, padding:3 }}
-                  onClick={() => !cell.blocked && !cell.pieceId && onBoardClick(cell.col, cell.row)}>
+                  onClick={(e) => !cell.blocked && !cell.pieceId && onBoardClick(e, cell.col, cell.row)}>
                   <div style={{
                     width:'100%', height:'100%',
                     borderRadius: CELL_SIZE * 0.28,
@@ -715,14 +780,48 @@ export default function Gameplay() {
       {dragPiece && (
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }}
-          animate={{ scale: 1.1, opacity: 0.9, x: ghostPos.x - ghostW/2, y: ghostPos.y - ghostH/2 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+          animate={{ 
+            scale: ghostTargetPos.snapped ? 1.0 : 1.1, 
+            opacity: 0.92, 
+            x: ghostTargetPos.x, 
+            y: ghostTargetPos.y 
+          }}
+          transition={{ type: 'spring', stiffness: 500, damping: 28 }}
           className="fixed z-50 pointer-events-none"
           style={{ left: 0, top: 0, width: ghostW, height: ghostH }}
         >
           <PieceTile piece={dragPiece} rotation={dragRot} cellSize={CELL_SIZE} ghost/>
         </motion.div>
       )}
+
+      {/* ── Particle bursts ────────────────────────────────── */}
+      <AnimatePresence>
+        {particles.map(p => (
+          <motion.div
+            key={p.id}
+            initial={{ x: p.startX, y: p.startY, opacity: 1, scale: 0.5 }}
+            animate={{ 
+              x: p.startX + p.destX, 
+              y: p.startY + p.destY, 
+              opacity: 0, 
+              scale: [0.5, 1.3, 0] 
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.65, ease: "easeOut" }}
+            onAnimationComplete={() => {
+              setParticles(prev => prev.filter(item => item.id !== p.id));
+            }}
+            className="fixed pointer-events-none z-[9999]"
+            style={{ 
+              fontSize: p.size,
+              color: p.color,
+              textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+            }}
+          >
+            {p.emoji}
+          </motion.div>
+        ))}
+      </AnimatePresence>
 
       <style>{`
         @keyframes solveGlow {
