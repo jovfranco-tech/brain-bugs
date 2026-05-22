@@ -325,6 +325,15 @@ export default function Gameplay() {
 
   // Particle bursts state
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [trailParticles, setTrailParticles] = useState<{
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    color: string;
+    angle: number;
+    emoji: string;
+  }[]>([]);
 
   // ── Drag state ──────────────────────────────────────────────
   const [dragPieceId, setDragPieceId] = useState<string | null>(null);
@@ -500,6 +509,22 @@ export default function Gameplay() {
     if (!dragPieceId) return;
     setGhostPos({ x: e.clientX, y: e.clientY });
     setHoverCell(getCellFromPoint(e.clientX, e.clientY));
+
+    if (Math.random() < 0.45) {
+      const colors = ['#FFD55E', '#3FD09E', '#8E6BFF', '#5BC5FF', '#FF6FA8'];
+      const emojis = ['✨', '⭐', '💫', '🌟'];
+      const size = Math.floor(Math.random() * 8) + 8;
+      const newParticle = {
+        id: Date.now() + Math.random(),
+        x: e.clientX,
+        y: e.clientY,
+        size,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        angle: Math.random() * Math.PI * 2,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      };
+      setTrailParticles(prev => [...prev, newParticle].slice(-40));
+    }
   }, [dragPieceId, getCellFromPoint]);
 
   const triggerShake = useCallback((pieceId: string, clientX?: number, clientY?: number) => {
@@ -827,11 +852,11 @@ export default function Gameplay() {
               return (
                 <motion.div
                   key={pl.pieceId}
-                  initial={{ scale: 0.6, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+                  initial={{ scale: 0.7, rotate: -6, opacity: 0 }}
+                  animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 15 }}
                   className="absolute pointer-events-none z-10"
-                  style={{ left: pl.col * CELL_SIZE, top: pl.row * CELL_SIZE }}
+                  style={{ left: pl.col * CELL_SIZE, top: pl.row * CELL_SIZE, originX: 0.5, originY: 0.5 }}
                 >
                   <PieceTile piece={piece} rotation={pl.rotation} cellSize={CELL_SIZE}/>
                 </motion.div>
@@ -1057,6 +1082,35 @@ export default function Gameplay() {
             }}
           >
             {p.emoji}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+
+      {/* ── Trail particles ────────────────────────────────── */}
+      <AnimatePresence>
+        {trailParticles.map(tp => (
+          <motion.div
+            key={tp.id}
+            initial={{ x: tp.x - tp.size/2, y: tp.y - tp.size/2, opacity: 1, scale: 0.6 }}
+            animate={{ 
+              x: tp.x - tp.size/2 + Math.cos(tp.angle) * 16, 
+              y: tp.y - tp.size/2 + Math.sin(tp.angle) * 16 + 12, 
+              opacity: 0, 
+              scale: [0.6, 1.2, 0] 
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+            onAnimationComplete={() => {
+              setTrailParticles(prev => prev.filter(item => item.id !== tp.id));
+            }}
+            className="fixed pointer-events-none z-[9999]"
+            style={{ 
+              fontSize: tp.size,
+              color: tp.color,
+              textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+            }}
+          >
+            {tp.emoji}
           </motion.div>
         ))}
       </AnimatePresence>

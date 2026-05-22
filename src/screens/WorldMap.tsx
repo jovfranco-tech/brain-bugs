@@ -167,10 +167,41 @@ export default function WorldMap() {
     <div className="flex flex-col h-full"
       style={{ background:'linear-gradient(180deg,#7CC7FF 0%,#5BB0FF 40%,#4D9CE5 100%)' }}>
 
-      {/* Clouds */}
-      <div className="absolute top-36 left-0 w-24 h-6 rounded-full bg-white opacity-70 pointer-events-none"/>
-      <div className="absolute top-44 left-10 w-16 h-5 rounded-full bg-white opacity-50 pointer-events-none"/>
-      <div className="absolute top-28 right-6 w-18 h-5 rounded-full bg-white opacity-60 pointer-events-none" style={{width:70}}/>
+      {/* Animated Clouds */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          initial={{ x: '-150%' }}
+          animate={{ x: '120vw' }}
+          transition={{
+            repeat: Infinity,
+            duration: 35,
+            ease: "linear",
+          }}
+          className="absolute top-36 w-24 h-6 rounded-full bg-white opacity-70"
+        />
+        <motion.div
+          initial={{ x: '-150%' }}
+          animate={{ x: '120vw' }}
+          transition={{
+            repeat: Infinity,
+            duration: 52,
+            ease: "linear",
+            delay: -22,
+          }}
+          className="absolute top-44 w-16 h-5 rounded-full bg-white opacity-50"
+        />
+        <motion.div
+          initial={{ x: '-150%' }}
+          animate={{ x: '120vw' }}
+          transition={{
+            repeat: Infinity,
+            duration: 62,
+            ease: "linear",
+            delay: -45,
+          }}
+          className="absolute top-28 w-20 h-5 rounded-full bg-white opacity-60"
+        />
+      </div>
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-14 pb-4 relative z-10 flex-shrink-0">

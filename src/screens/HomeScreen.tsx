@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import BrainBugsLogo from '../components/BrainBugsLogo';
 import BugSvg from '../components/BugSvg';
 import BottomNav from '../components/BottomNav';
@@ -91,9 +92,41 @@ export default function HomeScreen() {
         {/* Sun glow */}
         <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full pointer-events-none"
           style={{background:'radial-gradient(circle,rgba(255,220,100,0.7) 0%,rgba(255,220,100,0) 65%)'}}/>
-        {/* Clouds */}
-        <div className="absolute top-16 left-2 w-24 h-6 rounded-full bg-white opacity-75"/>
-        <div className="absolute top-24 left-10 w-16 h-5 rounded-full bg-white opacity-55"/>
+        {/* Animated Clouds */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <motion.div
+            initial={{ x: '-150%' }}
+            animate={{ x: '120vw' }}
+            transition={{
+              repeat: Infinity,
+              duration: 32,
+              ease: "linear",
+            }}
+            className="absolute top-16 w-24 h-6 rounded-full bg-white opacity-70"
+          />
+          <motion.div
+            initial={{ x: '-150%' }}
+            animate={{ x: '120vw' }}
+            transition={{
+              repeat: Infinity,
+              duration: 48,
+              ease: "linear",
+              delay: -20,
+            }}
+            className="absolute top-24 w-16 h-5 rounded-full bg-white opacity-50"
+          />
+          <motion.div
+            initial={{ x: '-150%' }}
+            animate={{ x: '120vw' }}
+            transition={{
+              repeat: Infinity,
+              duration: 56,
+              ease: "linear",
+              delay: -40,
+            }}
+            className="absolute top-36 w-20 h-5.5 rounded-full bg-white opacity-40"
+          />
+        </div>
         {/* Hills */}
         <svg viewBox="0 0 430 280" preserveAspectRatio="none" className="absolute bottom-16 w-full h-60 pointer-events-none">
           <path d="M0 120 Q 108 40 216 110 T 430 70 L 430 280 L 0 280 Z" fill="#88C862"/>
