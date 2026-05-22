@@ -73,7 +73,16 @@ export function VictoryScreen() {
     }
   }, [victoryData, navigate]);
 
-  if (!victoryData) return null;
+  if (!victoryData) {
+    return (
+      <div className="flex items-center justify-center h-full bg-[#110A30] text-white">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-t-purple-500 border-purple-200 rounded-full animate-spin mx-auto mb-3" style={{ borderTopColor: '#8E6BFF' }} />
+          <p className="text-sm font-semibold" style={{ fontFamily: '"Fredoka",system-ui' }}>Cargando mapa...</p>
+        </div>
+      </div>
+    );
+  }
   const { stars, moves, hintsUsed, newBadges = [], levelId } = victoryData;
 
   // Find the next level to play

@@ -346,6 +346,25 @@ export default function Gameplay() {
   const [solved,       setSolved]      = useState(false);
   const [solveGlow,    setSolveGlow]   = useState(false);
 
+  // Reset all game states when a new puzzle is loaded (handles advancing/going back cleanly without stale React states)
+  useEffect(() => {
+    if (!puzzle) return;
+    setBoard(buildEmptyBoard(puzzle));
+    setPlacements([]);
+    setAvailable(puzzle.pieces.map(p => p.id));
+    setSelected(puzzle.pieces[0]?.id ?? null);
+    setRotations({});
+    setMoves(0);
+    setHintsUsed(0);
+    setSolved(false);
+    setSolveGlow(false);
+    setFailCount(0);
+    
+    const nameStr = puzzle.name;
+    const diffText = puzzle.difficulty === 'easy' ? 'fácil' : puzzle.difficulty === 'medium' ? 'medio' : 'difícil';
+    setCoachMsg(`¡Bienvenido al nivel ${nameStr}! Dificultad: ${diffText}. ¡Coloca los bichos en el tablero!`);
+  }, [puzzle]);
+
   // Particle bursts state
   const [particles, setParticles] = useState<Particle[]>([]);
   const [trailParticles, setTrailParticles] = useState<{
