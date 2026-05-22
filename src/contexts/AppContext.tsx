@@ -60,6 +60,7 @@ function mapChildToLocal(row: any): ChildProfile {
     unlockedAccessories: row.unlocked_accessories || [],
     activeAccessoryId: row.active_accessory_id || null,
     dailyTimeLimit: row.daily_time_limit || 0,
+    themeColor: row.theme_color || 'purple',
   };
 }
 
@@ -79,6 +80,7 @@ function mapChildToDb(c: ChildProfile) {
     unlocked_accessories: c.unlockedAccessories || [],
     active_accessory_id: c.activeAccessoryId || null,
     daily_time_limit: c.dailyTimeLimit || 0,
+    theme_color: c.themeColor || 'purple',
   };
 }
 
@@ -123,11 +125,12 @@ interface AppContextValue {
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => void;
   // Child management
-  createChildProfile: (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange?: string }) => ChildProfile;
-  editChildProfile: (childId: string, data: Partial<Pick<ChildProfile, 'nickname' | 'avatarId' | 'bugCompanion' | 'ageRange'>>) => void;
+  createChildProfile: (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange?: string; themeColor?: 'purple' | 'blue' | 'yellow' | 'green' }) => ChildProfile;
+  editChildProfile: (childId: string, data: Partial<Pick<ChildProfile, 'nickname' | 'avatarId' | 'bugCompanion' | 'ageRange' | 'themeColor'>>) => void;
   selectChild: (childId: string) => void;
   deleteChildProfile: (childId: string) => void;
   resetChildProgress: (childId: string) => void;
+  updateChildThemeColor: (childId: string, color: 'purple' | 'blue' | 'yellow' | 'green') => void;
   // Navigation
   screen: Screen;
   screenParams: Record<string, string>;
@@ -395,7 +398,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
   // ─── Child profiles ───────────────────────────────────────────
   const createChildProfile = useCallback((data: {
-    nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange?: string;
+    nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange?: string; themeColor?: 'purple' | 'blue' | 'yellow' | 'green';
   }): ChildProfile => {
     if (!parent) throw new Error('No parent logged in');
     const child: ChildProfile = {
@@ -405,6 +408,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
       ageRange: data.ageRange as ChildProfile['ageRange'],
       createdAt: new Date().toISOString(),
       totalStars: 0, totalXP: 0, currentLevel: 1, currentWorld: 'meadow',
+      themeColor: data.themeColor || 'purple',
     };
     saveChild(child);
     setChildrenList(prev => [...prev, child]);
@@ -424,7 +428,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
   const editChildProfile = useCallback((
     childId: string,
-    data: Partial<Pick<ChildProfile, 'nickname' | 'avatarId' | 'bugCompanion' | 'ageRange'>>,
+    data: Partial<Pick<ChildProfile, 'nickname' | 'avatarId' | 'bugCompanion' | 'ageRange' | 'themeColor'>>,
   ) => {
     const child = getChildById(childId);
     if (child) {
@@ -435,6 +439,23 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
       if (db) {
         updateDoc(doc(db, 'children', childId), mapChildToDb(updated))
           .catch(error => console.error('Error updating child:', error));
+      }
+    }
+  }, []);
+
+  const updateChildThemeColor = useCallback((childId: string, color: 'purple' | 'blue' | 'yellow' | 'green') => {
+    const child = getChildById(childId);
+    if (child) {
+      const updated: ChildProfile = {
+        ...child,
+        themeColor: color,
+      };
+      saveChild(updated);
+      setChildrenList(prev => prev.map(c => c.id === childId ? updated : c));
+
+      if (db) {
+        updateDoc(doc(db, 'children', childId), mapChildToDb(updated))
+          .catch(error => console.error('Error updating child theme color:', error));
       }
     }
   }, []);
@@ -634,7 +655,7 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
   const value: AppContextValue = {
     parent, currentChild, children: childrenList, isLoading,
     signUp, signIn, signOut,
-    createChildProfile, editChildProfile, selectChild, deleteChildProfile, resetChildProgress,
+    createChildProfile, editChildProfile, selectChild, deleteChildProfile, resetChildProgress, updateChildThemeColor,
     screen, screenParams, navigate, goBack,
     getChildProgress, completeLevel, setCurrentLevel,
     victoryData, setVictoryData: setVD,
@@ -644,6 +665,13 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
 
   return <AppContext.Provider value={value}>{childNodes}</AppContext.Provider>;
 }
+
+export const THEME_PALETTES = {
+  purple: { primary: '#8E6BFF', dark: '#5A3BD1', glow: 'rgba(142,107,255,0.4)', text: '#8E6BFF', bgGradient: 'linear-gradient(180deg,#8E6BFF,#5A3BD1)' },
+  blue: { primary: '#5BC5FF', dark: '#2890D0', glow: 'rgba(91,197,255,0.4)', text: '#5BC5FF', bgGradient: 'linear-gradient(180deg,#5BC5FF,#2890D0)' },
+  yellow: { primary: '#FFC83D', dark: '#B97808', glow: 'rgba(255,200,61,0.4)', text: '#FFC83D', bgGradient: 'linear-gradient(180deg,#FFC83D,#B97808)' },
+  green: { primary: '#3FD09E', dark: '#1F9A6E', glow: 'rgba(63,208,158,0.4)', text: '#3FD09E', bgGradient: 'linear-gradient(180deg,#3FD09E,#1F9A6E)' },
+};
 
 export function useApp() {
   const ctx = useContext(AppContext);

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import BrainBugsLogo from '../components/BrainBugsLogo';
 import BugSvg from '../components/BugSvg';
 import BottomNav from '../components/BottomNav';
-import { useApp } from '../contexts/AppContext';
+import { useApp, THEME_PALETTES } from '../contexts/AppContext';
 import type { AvatarId } from '../types';
 import { getProgress, getTotalStars } from '../lib/storage';
 import { db } from '../lib/firebase';
@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const { currentChild, navigate, children, parent } = useApp();
   if (!currentChild) return null;
 
+  const theme = THEME_PALETTES[currentChild.themeColor || 'purple'] || THEME_PALETTES.purple;
   const av = AVATAR[currentChild.avatarId] ?? AVATAR.buzzy;
   const progress = getProgress(currentChild.id);
   const totalStars = getTotalStars(progress);
@@ -147,8 +148,13 @@ export default function HomeScreen() {
         <div className="flex items-center justify-between px-4 pt-14 pb-2">
           {/* Avatar chip */}
           <button onClick={() => navigate('child-select')}
-            className="flex items-center gap-2 px-3 py-2 rounded-2xl active:scale-95"
-            style={{background:'rgba(255,255,255,0.75)', backdropFilter:'blur(8px)', boxShadow:'0 3px 0 rgba(35,19,71,0.1)'}}>
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl active:scale-95 transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+              boxShadow: `0 3px 0 rgba(35,19,71,0.1), 0 0 10px ${theme.glow}`,
+              border: `2px solid ${theme.primary}`
+            }}>
             <div className="w-7 h-7 rounded-full text-base flex items-center justify-center"
               style={{background:av.bg, fontSize:16}}>
               {av.emoji}
@@ -216,7 +222,7 @@ export default function HomeScreen() {
               {label:'Medallas', value:progress.badges.length},
             ].map(s => (
               <div key={s.label} className="text-center">
-                <div className="font-bold text-ink/80 text-lg" style={{fontFamily:'"Fredoka",system-ui'}}>{s.value}</div>
+                <div className="font-bold text-lg" style={{fontFamily:'"Fredoka",system-ui', color: theme.dark}}>{s.value}</div>
                 <div className="text-xs text-ink/45 font-bold" style={{fontFamily:'"Nunito",system-ui'}}>{s.label}</div>
               </div>
             ))}
@@ -340,14 +346,15 @@ export default function HomeScreen() {
         <div className="flex flex-col gap-2.5 px-4 mt-3">
           {/* PLAY button */}
           <button onClick={() => navigate('world-map')}
-            className="w-full py-5 rounded-3xl text-ink font-bold text-3xl tracking-widest flex items-center justify-center gap-2.5 active:scale-95 transition-transform"
+            className="w-full py-5 rounded-3xl text-white font-bold text-3xl tracking-widest flex items-center justify-center gap-2.5 active:scale-95 transition-all duration-200"
             style={{
-              background:'linear-gradient(180deg,#FFD55E 0%,#FFB23A 100%)',
-              fontFamily:'"Fredoka",system-ui',
-              boxShadow:'0 9px 0 #B97808, inset 0 -4px 0 rgba(255,255,255,0.18), inset 0 3px 0 rgba(255,255,255,0.42)',
-              textShadow:'0 2px 0 rgba(0,0,0,0.16)', color:'#231347',
+              background: theme.bgGradient,
+              fontFamily: '"Fredoka",system-ui',
+              boxShadow: `0 9px 0 ${theme.dark}, inset 0 -4px 0 rgba(255,255,255,0.22), inset 0 3px 0 rgba(255,255,255,0.45), 0 6px 15px ${theme.glow}`,
+              textShadow: '0 2px 4px rgba(0,0,0,0.25)',
+              color: '#ffffff',
             }}>
-            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" fill="#231347"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" fill="#ffffff"/></svg>
             ¡JUGAR!
           </button>
 

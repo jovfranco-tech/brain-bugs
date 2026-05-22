@@ -23,7 +23,7 @@ const COMPANIONS: { kind: BugKind; label: string }[] = [
 
 interface ProfileFormProps {
   initial?: Partial<ChildProfile>;
-  onSave: (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange: string }) => void;
+  onSave: (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange: string; themeColor: 'purple' | 'blue' | 'yellow' | 'green' }) => void;
   onCancel: () => void;
   saveLabel?: string;
 }
@@ -33,6 +33,7 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = '¡A JUGAR! 🚀' 
   const [avatarId,     setAvatarId]    = useState<AvatarId>(initial?.avatarId ?? 'buzzy');
   const [bugCompanion, setBugCompanion] = useState<BugKind>(initial?.bugCompanion ?? 'pip');
   const [ageRange,     setAgeRange]    = useState(initial?.ageRange ?? '7-8');
+  const [themeColor,   setThemeColor]  = useState<'purple' | 'blue' | 'yellow' | 'green'>(initial?.themeColor ?? 'purple');
   const [error,        setError]       = useState('');
 
   const inputStyle = {
@@ -69,6 +70,40 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = '¡A JUGAR! 🚀' 
               {a}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Theme Color */}
+      <div className="mb-4">
+        <label className="block text-xs font-bold text-ink/50 uppercase tracking-wide mb-1.5"
+          style={{fontFamily:'"Nunito",system-ui'}}>Color de Tema Favorito</label>
+        <div className="flex gap-2.5 justify-between">
+          {[
+            { id: 'purple', bg: '#8E6BFF', name: 'Morado Galáctico' },
+            { id: 'blue', bg: '#5BC5FF', name: 'Azul Cósmico' },
+            { id: 'yellow', bg: '#FFC83D', name: 'Amarillo Estelar' },
+            { id: 'green', bg: '#3FD09E', name: 'Verde Menta' },
+          ].map(c => {
+            const active = themeColor === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setThemeColor(c.id as any)}
+                className="flex-1 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 border"
+                style={{
+                  background: c.bg,
+                  borderColor: active ? '#231347' : 'transparent',
+                  borderWidth: active ? '3px' : '1px',
+                  boxShadow: active ? '0 0 8px rgba(35,19,71,0.2)' : '0 3px 0 rgba(35,19,71,0.15)',
+                  transform: active ? 'scale(1.08)' : 'scale(1)',
+                }}
+                title={c.name}
+              >
+                {active && <span className="text-white font-extrabold text-xs">✓</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -121,7 +156,7 @@ function ProfileForm({ initial, onSave, onCancel, saveLabel = '¡A JUGAR! 🚀' 
         </button>
         <button onClick={() => {
           if (!nickname.trim()) { setError('¡Ponle un apodo a tu hijo/a!'); return; }
-          onSave({ nickname: nickname.trim(), avatarId, bugCompanion, ageRange });
+          onSave({ nickname: nickname.trim(), avatarId, bugCompanion, ageRange, themeColor });
         }}
           className="flex-[2] py-3 rounded-2xl text-ink font-bold text-base active:scale-95"
           style={{background:'linear-gradient(180deg,#FFD55E,#FFB23A)', fontFamily:'"Fredoka",system-ui', boxShadow:'0 5px 0 #B97808', color:'#231347'}}>
@@ -173,13 +208,13 @@ export default function ChildSelector() {
   const [editTarget, setEditTarget] = useState<ChildProfile | null>(null);
   const [showReset, setShowReset] = useState(false);
 
-  const handleCreate = (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange: string }) => {
+  const handleCreate = (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange: string; themeColor: 'purple' | 'blue' | 'yellow' | 'green' }) => {
     const child = createChildProfile(data);
     setModal(null);
     selectChild(child.id);
   };
 
-  const handleEdit = (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange: string }) => {
+  const handleEdit = (data: { nickname: string; avatarId: AvatarId; bugCompanion: BugKind; ageRange: string; themeColor: 'purple' | 'blue' | 'yellow' | 'green' }) => {
     if (!editTarget) return;
     editChildProfile(editTarget.id, { ...data, ageRange: data.ageRange as ChildProfile['ageRange'] });
     setModal(null); setEditTarget(null);

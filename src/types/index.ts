@@ -37,6 +37,7 @@ export interface ChildProfile {
   unlockedAccessories?: string[];
   activeAccessoryId?: string | null;
   dailyTimeLimit?: number; // In minutes, optional/undefined if unlimited
+  themeColor?: 'purple' | 'blue' | 'yellow' | 'green';
 }
 
 // ─── World & Level ────────────────────────────────────────────

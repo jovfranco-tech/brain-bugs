@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { WorldId, Puzzle, PuzzlePiece, Placement, BoardCell, BugKind } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useApp, THEME_PALETTES } from '../contexts/AppContext';
 import { PUZZLES } from '../data/puzzles';
 import { applyRotation, shapeSize, makePiece } from '../data/characters';
 import BugSvg from '../components/BugSvg';
@@ -197,6 +197,8 @@ interface AmbientParticle {
 export default function Gameplay() {
   const { navigate, screenParams, currentChild, completeLevel, setVictoryData } = useApp();
   const { levelId = '', worldId = '' } = screenParams;
+
+  const theme = THEME_PALETTES[currentChild?.themeColor || 'purple'] || THEME_PALETTES.purple;
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(() => {
@@ -765,10 +767,10 @@ export default function Gameplay() {
           </button>
           
           <button onClick={toggleNightMode}
-            className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 text-lg"
+            className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 text-lg transition-all"
             style={{ 
-              background: nightMode ? 'rgba(142,107,255,0.22)' : 'rgba(255,255,255,0.12)', 
-              border: nightMode ? '1px solid rgba(142,107,255,0.35)' : '1px solid rgba(255,255,255,0.18)' 
+              background: nightMode ? theme.glow : 'rgba(255,255,255,0.12)', 
+              border: nightMode ? `1px solid ${theme.primary}` : '1px solid rgba(255,255,255,0.18)' 
             }}
             title={nightMode ? "Activar modo día" : "Activar modo noche"}
           >
@@ -906,9 +908,9 @@ export default function Gameplay() {
                 style={{
                   padding: 6, minWidth: 52, minHeight: 70,
                   background: isSel && !isDrag 
-                    ? nightMode ? 'rgba(255,200,61,0.08)' : 'rgba(255,200,61,0.18)'
+                    ? theme.glow
                     : 'transparent',
-                  border: isSel && !isDrag ? '2px solid #FFC83D' : '2px solid transparent',
+                  border: isSel && !isDrag ? `2px solid ${theme.primary}` : '2px solid transparent',
                   opacity: isDrag ? 0.28 : 1,
                   touchAction: 'none',
                 }}
@@ -918,7 +920,7 @@ export default function Gameplay() {
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 animate-arrow-bob"
                     style={{ width:0, height:0,
                              borderLeft:'5px solid transparent', borderRight:'5px solid transparent',
-                             borderBottom:'7px solid #FFC83D' }}/>
+                             borderBottom:`7px solid ${theme.primary}` }}/>
                 )}
               </motion.div>
             );
@@ -1036,7 +1038,7 @@ export default function Gameplay() {
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M4 12l5 5L20 6" stroke="#231347" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color="#8E6BFF" dark="#5A3BD1" label="Pista" onClick={askHint} disabled={solved}
+        <CtrlBtn color={theme.primary} dark={theme.dark} label="Pista" onClick={askHint} disabled={solved}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c1 1 1.5 1.7 1.5 3v.5h5V16.5c0-1.3.5-2 1.5-3A6 6 0 0012 3z"
               stroke="#fff" strokeWidth="2.2" strokeLinejoin="round"/>
@@ -1134,8 +1136,8 @@ export default function Gameplay() {
           50% { transform: translate(-50%, -4px); }
         }
         @keyframes glowPulse {
-          0%, 100% { box-shadow: 0 0 6px rgba(255,200,61,0.45), inset 0 0 3px rgba(255,200,61,0.2); }
-          50% { box-shadow: 0 0 14px rgba(255,200,61,0.9), inset 0 0 6px rgba(255,200,61,0.45); }
+          0%, 100% { box-shadow: 0 0 6px ${theme.glow}, inset 0 0 3px rgba(255,255,255,0.15); }
+          50% { box-shadow: 0 0 14px ${theme.primary}, inset 0 0 6px ${theme.glow}; }
         }
         .animate-wave-bar-1 { animation: waveBar 0.5s ease-in-out infinite; transform-origin: bottom; }
         .animate-wave-bar-2 { animation: waveBar 0.75s ease-in-out infinite 0.12s; transform-origin: bottom; }

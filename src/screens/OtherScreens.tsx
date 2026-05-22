@@ -417,6 +417,13 @@ const TUTORIAL_SLIDES = [
 export function ParentDashboard() {
   const { navigate, parent, children, currentChild, resetChildProgress, signOut, updateChildTimeLimit } = useApp();
   const [viewId, setViewId] = useState(currentChild?.id ?? children[0]?.id ?? '');
+
+  const handleTriggerPrint = () => {
+    sound.playClick();
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
   const child = children.find(c=>c.id===viewId) ?? currentChild;
   const progress = child ? getProgress(child.id) : null;
   const totalStars  = progress ? getTotalStars(progress) : 0;
@@ -1172,6 +1179,7 @@ export function ParentDashboard() {
           }}>
           {[
             {icon:'👥', label:'Gestionar perfiles',  sub:'Añade, edita o elimina perfiles de niños', action:()=>navigate('child-select'), disabled: false},
+            {icon:'🖨️', label:'Imprimir rompecabezas físico', sub:'Descarga en papel una plantilla de Tangram para recortar y jugar', action:()=>handleTriggerPrint(), disabled: false},
             {icon:'🔄', label:'Restablecer progreso',    sub:'Borra todas las estrellas y medallas de este perfil', action:()=>setConfirmReset(true), danger:true, disabled: false},
             {icon:'⏱',  label:'Tiempo en pantalla',       sub: child?.dailyTimeLimit ? `Límite activo: ${child.dailyTimeLimit} minutos` : 'Sin límite diario activo (Toca para configurar)', action:()=>setShowScreenTime(true), disabled: false},
             {icon:'🔒', label:'Seguridad y privacidad',  sub:'Ver política de datos infantiles', action:()=>navigate('settings'), disabled: false},
@@ -1318,6 +1326,121 @@ export function ParentDashboard() {
           </div>
         </div>
       )}
+
+      {/* Hidden Printable Area */}
+      <div id="printable-puzzle-area" className="hidden print:block p-8 font-sans text-black bg-white" style={{ background: 'white', color: 'black' }}>
+        <div className="text-center border-b-2 border-black pb-4 mb-6">
+          <h1 className="text-3xl font-extrabold tracking-wider" style={{ fontFamily: '"Segoe UI", sans-serif' }}>🧠 BRAIN BUGS: Rompecabezas Físico</h1>
+          <p className="text-sm font-semibold text-gray-600 mt-1">Plan de estimulación lógica y razonamiento espacial táctil</p>
+        </div>
+
+        <div className="mb-6 bg-gray-50 border border-gray-200 p-4 rounded-xl">
+          <h3 className="text-base font-bold text-gray-800 mb-1">📢 Instrucciones para Padres:</h3>
+          <ol className="list-decimal pl-5 text-xs text-gray-600 space-y-1">
+            <li><strong>Recorta las piezas</strong> (los bichos) que se encuentran en el recuadro inferior con líneas punteadas.</li>
+            <li>Coloca las piezas en las celdas vacías del tablero intentando <strong>llenar toda la grilla</strong> sin superponerlas.</li>
+            <li><strong>Respeta los obstáculos:</strong> las celdas marcadas como piedra oscura (🪨) deben permanecer vacías.</li>
+            <li><strong>Respeta las cerraduras:</strong> si una celda tiene un dibujo de bicho, esa celda debe ser ocupada por ese tipo específico de pieza.</li>
+          </ol>
+        </div>
+
+        <div className="flex flex-col items-center mb-8">
+          <h4 className="text-lg font-bold text-gray-800 mb-4">🧩 Tablero de Coordenadas ({child?.nickname})</h4>
+          
+          {/* Printable 5x5 Grid */}
+          <div className="grid grid-cols-5 gap-1.5 p-3 bg-gray-100 border-2 border-gray-400 rounded-xl" style={{ width: '320px', height: '320px', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
+            {[...Array(25)].map((_, idx) => {
+              const r = Math.floor(idx / 5);
+              const c = idx % 5;
+              // Hardcoded block coordinates for printing a standard solvable logic layout
+              const isBlocked = (c === 0 && r === 0) || (c === 4 && r === 4) || (c === 2 && r === 2) || (c === 0 && r === 4);
+              return (
+                <div
+                  key={`print-cell-${idx}`}
+                  className={`border border-gray-300 rounded flex flex-col items-center justify-center relative font-bold text-[10px]`}
+                  style={{
+                    backgroundColor: isBlocked ? '#1F2937' : '#FFFFFF',
+                    color: isBlocked ? '#FFFFFF' : '#9CA3AF',
+                    border: '1px solid #D1D5DB',
+                    aspectRatio: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {isBlocked ? (
+                    <span className="text-lg">🪨</span>
+                  ) : (
+                    <span>{String.fromCharCode(65 + c)}{r + 1}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Piece Cut-outs Block */}
+        <div className="border-2 border-dashed border-gray-400 p-5 rounded-2xl bg-white mt-8">
+          <h4 className="text-base font-extrabold text-gray-800 border-b border-gray-300 pb-2 mb-4 text-center">✂️ Recortables de Bichos Lógicos (Tangram Físico)</h4>
+          <p className="text-[11px] text-gray-500 text-center mb-6">Recorta cuidadosamente por las líneas de trazos para obtener las fichas de manipulación real.</p>
+          
+          <div className="flex justify-around items-center" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+            {/* Piece 1: Rose (2 celdas) */}
+            <div className="border border-dashed border-gray-400 p-3 rounded flex flex-col items-center bg-gray-50" style={{ width: '80px', border: '1px dashed #9CA3AF', padding: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span className="text-2xl mb-1">🌸</span>
+              <span className="text-[10px] font-bold text-gray-700">Rose (2 celdas)</span>
+              <div className="flex gap-0.5 mt-2" style={{ display: 'flex', gap: '2px', marginTop: '8px' }}>
+                <div className="w-4 h-4 border border-gray-300 bg-pink-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#FCE7F3' }}/>
+                <div className="w-4 h-4 border border-gray-300 bg-pink-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#FCE7F3' }}/>
+              </div>
+            </div>
+
+            {/* Piece 2: Pip (3 celdas) */}
+            <div className="border border-dashed border-gray-400 p-3 rounded flex flex-col items-center bg-gray-50" style={{ width: '80px', border: '1px dashed #9CA3AF', padding: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span className="text-2xl mb-1">🐛</span>
+              <span className="text-[10px] font-bold text-gray-700">Pip (3 celdas)</span>
+              <div className="flex gap-0.5 mt-2" style={{ display: 'flex', gap: '2px', marginTop: '8px' }}>
+                <div className="w-4 h-4 border border-gray-300 bg-emerald-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#D1FAE5' }}/>
+                <div className="w-4 h-4 border border-gray-300 bg-emerald-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#D1FAE5' }}/>
+                <div className="w-4 h-4 border border-gray-300 bg-emerald-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#D1FAE5' }}/>
+              </div>
+            </div>
+
+            {/* Piece 3: Bobo (3 celdas L) */}
+            <div className="border border-dashed border-gray-400 p-3 rounded flex flex-col items-center bg-gray-50" style={{ width: '80px', border: '1px dashed #9CA3AF', padding: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span className="text-2xl mb-1">🦋</span>
+              <span className="text-[10px] font-bold text-gray-700">Bobo (L - 3 c)</span>
+              <div className="flex flex-col items-start mt-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: '8px' }}>
+                <div className="flex gap-0.5" style={{ display: 'flex', gap: '2px' }}>
+                  <div className="w-4 h-4 border border-gray-300 bg-purple-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#F3E8FF' }}/>
+                  <div className="w-4 h-4 border border-gray-300 bg-purple-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#F3E8FF' }}/>
+                </div>
+                <div className="w-4 h-4 border border-gray-300 bg-purple-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#F3E8FF', marginTop: '2px' }}/>
+              </div>
+            </div>
+
+            {/* Piece 4: Zig (4 celdas Z) */}
+            <div className="border border-dashed border-gray-400 p-3 rounded flex flex-col items-center bg-gray-50" style={{ width: '80px', border: '1px dashed #9CA3AF', padding: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span className="text-2xl mb-1">🐞</span>
+              <span className="text-[10px] font-bold text-gray-700">Zig (Z - 4 c)</span>
+              <div className="flex flex-col items-center mt-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '8px' }}>
+                <div className="flex gap-0.5" style={{ display: 'flex', gap: '2px' }}>
+                  <div className="w-4 h-4 border border-gray-300 bg-amber-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#FEF3C7' }}/>
+                  <div className="w-4 h-4 border border-gray-300 bg-amber-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#FEF3C7' }}/>
+                </div>
+                <div className="flex gap-0.5" style={{ display: 'flex', gap: '2px', marginLeft: '16px', marginTop: '2px' }}>
+                  <div className="w-4 h-4 border border-gray-300 bg-amber-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#FEF3C7' }}/>
+                  <div className="w-4 h-4 border border-gray-300 bg-amber-100 rounded" style={{ width: '16px', height: '16px', border: '1px solid #D1D5DB', backgroundColor: '#FEF3C7' }}/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-center mt-12 border-t pt-4 text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+          © BRAIN BUGS Co. · Diseñado para estimular el Razonamiento y Desarrollo Cognitivo de forma divertida y offline
+        </div>
+      </div>
 
       <BottomNav/>
     </div>
