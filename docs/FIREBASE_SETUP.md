@@ -46,3 +46,16 @@ Most queries in the app use single-field filters (e.g., fetching children where 
 ```bash
 firebase deploy --only firestore:indexes
 ```
+
+## 7. Configurar Envío de Reportes por Correo (Trigger Email Extension)
+Para que el botón "Enviar reporte a mi correo" en el AI Coach envíe reportes por correo real en producción:
+1. Ve a la sección **Extensions** en el Firebase Console.
+2. Busca la extensión oficial **Trigger Email** (desarrollada por Firebase).
+3. Haz clic en **Install** (Instalar).
+4. Configura los siguientes parámetros durante el asistente de instalación:
+   - **SMTP connection URI:** Tu URI de conexión SMTP del proveedor (ej. Gmail, SendGrid, Mailgun, Postmark, etc.).
+   - **Email documents collection:** `mail` (coincide exactamente con la colección donde escribe nuestra app).
+   - **Default FROM address:** Tu dirección de correo electrónico remitente autorizada.
+   - **Default FROM name:** "AI Coach de Brain Bugs 🧠"
+5. Haz clic en **Install extension**.
+6. Con esta extensión, cada vez que un padre pulse sobre "Enviar reporte a mi correo", la app guardará un documento en la colección `mail` y Firebase enviará el reporte interactivo y premium de desarrollo cognitivo directamente a la bandeja de entrada del padre.

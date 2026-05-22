@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../contexts/AppContext';
 import type { Screen } from '../types';
+import { sound } from '../lib/sound';
 
 interface TabItem { screen: Screen; label: string; icon: React.ReactNode; }
 
@@ -45,9 +46,16 @@ const TABS: TabItem[] = [
 
 export default function BottomNav() {
   const { screen, navigate } = useApp();
+  const [musicEnabled, setMusicEnabled] = React.useState(() => sound.getMusicEnabled());
+
+  const toggleMusic = () => {
+    const nextVal = !musicEnabled;
+    setMusicEnabled(nextVal);
+    sound.setMusicEnabled(nextVal);
+  };
 
   return (
-    <nav className="flex items-center justify-around px-2 py-2 bg-white rounded-3xl mx-3 mb-2"
+    <nav className="flex items-center justify-around px-2 py-2 bg-white rounded-3xl mx-3 mb-2 gap-1"
       style={{ boxShadow:'0 -2px 20px rgba(35,19,71,0.07), 0 6px 0 rgba(35,19,71,0.11)', flexShrink: 0 }}>
       {TABS.map(tab => {
         const active = screen === tab.screen;
@@ -75,6 +83,31 @@ export default function BottomNav() {
           </button>
         );
       })}
+      
+      {/* Visual divider line */}
+      <div className="h-6 w-px bg-gray-200" />
+      
+      {/* Upbeat BGM toggle */}
+      <button
+        onClick={toggleMusic}
+        className="flex flex-col items-center justify-center px-2.5 py-1.5 rounded-2xl transition-all active:scale-90"
+        style={{
+          background: musicEnabled ? 'linear-gradient(180deg,#FFF2D9,#FFE6BD)' : 'transparent',
+          boxShadow: musicEnabled ? '0 4px 0 rgba(224,133,24,0.22)' : 'none',
+          border: 'none',
+        }}
+      >
+        <span className={`text-base transition-transform ${musicEnabled ? 'scale-110 animate-bounce' : 'opacity-40'}`} style={{ animationDuration: '2s' }}>
+          {musicEnabled ? '🎵' : '🔇'}
+        </span>
+        <span style={{
+          fontFamily: '"Fredoka",system-ui', fontSize: 8,
+          fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
+          color: musicEnabled ? '#B97808' : 'rgba(35,19,71,0.3)',
+        }}>
+          MÚSICA
+        </span>
+      </button>
     </nav>
   );
 }

@@ -203,6 +203,18 @@ export default function Gameplay() {
     return localStorage.getItem('brain_bugs_auto_speak') === 'true';
   });
   const [ambientParticles, setAmbientParticles] = useState<AmbientParticle[]>([]);
+  const [nightMode, setNightMode] = useState(() => {
+    return localStorage.getItem('brain_bugs_night_mode') === 'true';
+  });
+
+  const toggleNightMode = useCallback(() => {
+    sound.playClick();
+    setNightMode(prev => {
+      const next = !prev;
+      localStorage.setItem('brain_bugs_night_mode', String(next));
+      return next;
+    });
+  }, []);
 
   const speakText = useCallback((text: string) => {
     if ('speechSynthesis' in window) {
@@ -645,9 +657,11 @@ export default function Gameplay() {
 
   return (
     <div
-      className="flex flex-col h-full overflow-hidden select-none"
+      className="flex flex-col h-full overflow-hidden select-none transition-colors duration-500"
       style={{
-        background: 'linear-gradient(180deg,#2B1A6A 0%,#1C1148 60%,#110A30 100%)',
+        background: nightMode 
+          ? 'linear-gradient(180deg,#0E0620 0%,#090414 60%,#040209 100%)' 
+          : 'linear-gradient(180deg,#2B1A6A 0%,#1C1148 60%,#110A30 100%)',
         touchAction: dragPieceId ? 'none' : 'auto',
       }}
       onPointerMove={onContainerPointerMove}
@@ -663,7 +677,7 @@ export default function Gameplay() {
             top: `${p.y}%`,
             width: p.size,
             height: p.size,
-            opacity: p.opacity,
+            opacity: nightMode ? p.opacity * 0.35 : p.opacity,
             transition: 'top 0.05s linear',
           };
 
@@ -712,13 +726,26 @@ export default function Gameplay() {
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="relative z-20 flex items-center justify-between px-4 pt-14 pb-2 flex-shrink-0">
-        <button onClick={() => navigate('world-map')}
-          className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90"
-          style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.18)' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M15 6l-6 6 6 6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate('world-map')}
+            className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90"
+            style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.18)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M15 6l-6 6 6 6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+          
+          <button onClick={toggleNightMode}
+            className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 text-lg"
+            style={{ 
+              background: nightMode ? 'rgba(142,107,255,0.22)' : 'rgba(255,255,255,0.12)', 
+              border: nightMode ? '1px solid rgba(142,107,255,0.35)' : '1px solid rgba(255,255,255,0.18)' 
+            }}
+            title={nightMode ? "Activar modo día" : "Activar modo noche"}
+          >
+            {nightMode ? '🌙' : '☀️'}
+          </button>
+        </div>
 
         <div className="flex flex-col items-center">
           <div className="px-5 py-1.5 rounded-full text-ink text-sm font-bold tracking-widest uppercase flex items-center gap-1.5"
@@ -776,7 +803,7 @@ export default function Gameplay() {
                       ? 'rgba(0,0,0,0.55)'
                       : inPreview
                         ? previewData.valid ? 'rgba(63,208,158,0.38)' : 'rgba(255,80,80,0.32)'
-                        : cell.pieceId ? 'transparent' : 'rgba(255,255,255,0.055)',
+                        : cell.pieceId ? 'transparent' : nightMode ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.055)',
                     boxShadow: cell.blocked ? 'none'
                       : inPreview ? `inset 0 0 0 2px ${previewData.valid ? '#3FD09E' : '#FF5050'}`
                       : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -844,10 +871,14 @@ export default function Gameplay() {
                 whileTap={{ scale: 0.95 }}
                 animate={isShake ? { x: [-8, 8, -6, 6, -4, 4, 0] } : { scale: 1 }}
                 transition={isShake ? { duration: 0.4 } : { type: 'spring', stiffness: 400, damping: 25 }}
-                className="relative flex items-center justify-center rounded-xl cursor-pointer transition-all"
+                className={`relative flex items-center justify-center rounded-xl cursor-pointer transition-all ${
+                  isSel && !isDrag ? 'animate-glow-pulse' : ''
+                }`}
                 style={{
                   padding: 6, minWidth: 52, minHeight: 70,
-                  background: isSel && !isDrag ? 'rgba(255,200,61,0.18)' : 'transparent',
+                  background: isSel && !isDrag 
+                    ? nightMode ? 'rgba(255,200,61,0.08)' : 'rgba(255,200,61,0.18)'
+                    : 'transparent',
                   border: isSel && !isDrag ? '2px solid #FFC83D' : '2px solid transparent',
                   opacity: isDrag ? 0.28 : 1,
                   touchAction: 'none',
@@ -855,7 +886,7 @@ export default function Gameplay() {
               >
                 <PieceTile piece={piece} rotation={rot} cellSize={28}/>
                 {isSel && !isDrag && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2"
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 animate-arrow-bob"
                     style={{ width:0, height:0,
                              borderLeft:'5px solid transparent', borderRight:'5px solid transparent',
                              borderBottom:'7px solid #FFC83D' }}/>
@@ -883,8 +914,15 @@ export default function Gameplay() {
       </div>
 
       {/* ── Bug Coach ──────────────────────────────────────── */}
-      <div className="relative z-10 mx-3 mb-2 flex items-center gap-3 p-3 rounded-2xl bg-white flex-shrink-0"
-        style={{ boxShadow:'0 4px 0 rgba(0,0,0,0.22)', minHeight: 62 }}>
+      <div className={`relative z-10 mx-3 mb-2 flex items-center gap-3 p-3 rounded-2xl flex-shrink-0 transition-all duration-300 ${
+        nightMode 
+          ? 'bg-[#180A2D] border border-[#2D174E]/60 text-purple-100' 
+          : 'bg-white text-ink'
+      }`}
+        style={{ 
+          boxShadow: nightMode ? '0 4px 0 rgba(0,0,0,0.45)' : '0 4px 0 rgba(0,0,0,0.22)',
+          minHeight: 62 
+        }}>
         <div className="flex-shrink-0 relative">
           <motion.div
             animate={isSpeaking ? {
@@ -905,8 +943,8 @@ export default function Gameplay() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="text-xs font-bold uppercase tracking-widest"
-                style={{ color:'#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
+              <div className="text-xs font-bold uppercase tracking-widest transition-colors duration-300"
+                style={{ color: nightMode ? '#C0A0FF' : '#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
                 ENTRENADOR BUG
               </div>
               {isSpeaking && (
@@ -921,7 +959,11 @@ export default function Gameplay() {
               <button
                 onClick={toggleAutoSpeak}
                 className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded transition-all active:scale-95 flex items-center gap-0.5 ${
-                  autoSpeak ? 'bg-orange-500 text-white shadow-sm' : 'bg-orange-50/70 text-[#FF8A4C] border border-orange-200/50'
+                  autoSpeak 
+                    ? 'bg-orange-500 text-white shadow-sm' 
+                    : nightMode
+                      ? 'bg-purple-950/50 text-purple-300 border border-purple-800/40'
+                      : 'bg-orange-50/70 text-[#FF8A4C] border border-orange-200/50'
                 }`}
                 style={{ fontFamily: '"Fredoka",system-ui' }}
                 title={autoSpeak ? "Auto-voz activada" : "Activar auto-voz"}
@@ -931,7 +973,11 @@ export default function Gameplay() {
               </button>
               <button
                 onClick={() => speakText(coachMsg)}
-                className="text-[9px] font-extrabold text-[#FF8A4C] hover:scale-105 active:scale-95 px-1.5 py-0.5 rounded bg-orange-100 flex items-center gap-0.5"
+                className={`text-[9px] font-extrabold hover:scale-105 active:scale-95 px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                  nightMode
+                    ? 'bg-purple-900/60 text-purple-200 hover:bg-purple-800/70'
+                    : 'bg-orange-100 text-[#FF8A4C]'
+                }`}
                 style={{ fontFamily: '"Fredoka",system-ui' }}
                 title="Escuchar entrenador"
               >
@@ -939,7 +985,7 @@ export default function Gameplay() {
               </button>
             </div>
           </div>
-          <p className="text-sm font-bold text-ink leading-snug" style={{ fontFamily:'"Nunito",system-ui' }}>
+          <p className={`text-sm font-bold leading-snug transition-colors duration-300 ${nightMode ? 'text-purple-100' : 'text-ink'}`} style={{ fontFamily:'"Nunito",system-ui' }}>
             {coachMsg}
           </p>
         </div>
@@ -1025,9 +1071,19 @@ export default function Gameplay() {
           0%, 100% { transform: scaleY(0.4); }
           50% { transform: scaleY(1.4); }
         }
+        @keyframes arrowBob {
+          0%, 100% { transform: translate(-50%, 0); }
+          50% { transform: translate(-50%, -4px); }
+        }
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 0 6px rgba(255,200,61,0.45), inset 0 0 3px rgba(255,200,61,0.2); }
+          50% { box-shadow: 0 0 14px rgba(255,200,61,0.9), inset 0 0 6px rgba(255,200,61,0.45); }
+        }
         .animate-wave-bar-1 { animation: waveBar 0.5s ease-in-out infinite; transform-origin: bottom; }
         .animate-wave-bar-2 { animation: waveBar 0.75s ease-in-out infinite 0.12s; transform-origin: bottom; }
         .animate-wave-bar-3 { animation: waveBar 0.65s ease-in-out infinite 0.22s; transform-origin: bottom; }
+        .animate-arrow-bob { animation: arrowBob 1.2s ease-in-out infinite; }
+        .animate-glow-pulse { animation: glowPulse 1.8s ease-in-out infinite; }
       `}</style>
     </div>
   );

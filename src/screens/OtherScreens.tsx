@@ -8,6 +8,8 @@ import { getProgress, getTotalStars, getPuzzlesSolved } from '../lib/storage';
 import { getAllLevels } from '../data/worlds';
 import { sound } from '../lib/sound';
 import confetti from 'canvas-confetti';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
 
 // ─── Confetti particle ────────────────────────────────────────
 function Confetti({ count = 28 }: { count?: number }) {
@@ -359,6 +361,174 @@ export function ParentDashboard() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [showScreenTime, setShowScreenTime] = useState(false);
 
+  const [challengeTarget, setChallengeTarget] = useState<number>(50);
+  const [challengeReward, setChallengeReward] = useState<string>("¡Una tarde de helados y películas!");
+  const [savingChallenge, setSavingChallenge] = useState(false);
+  const [showSavedToast, setShowSavedToast] = useState(false);
+
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    const parentId = parent?.id || 'guest';
+    const localTarget = localStorage.getItem(`bb_challenge_target_${parentId}`);
+    const localReward = localStorage.getItem(`bb_challenge_reward_${parentId}`);
+    if (localTarget) setChallengeTarget(parseInt(localTarget, 10));
+    if (localReward) setChallengeReward(localReward);
+
+    if (parent?.id && db) {
+      getDoc(doc(db, 'parents', parent.id)).then(snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.challengeTarget !== undefined) {
+            setChallengeTarget(data.challengeTarget);
+            localStorage.setItem(`bb_challenge_target_${parent.id}`, String(data.challengeTarget));
+          }
+          if (data.challengeReward !== undefined) {
+            setChallengeReward(data.challengeReward);
+            localStorage.setItem(`bb_challenge_reward_${parent.id}`, data.challengeReward);
+          }
+        }
+      }).catch(err => console.warn("Error fetching parent challenge:", err));
+    }
+  }, [parent]);
+
+  const handleSaveChallenge = async (newTarget: number, newReward: string) => {
+    sound.playClick();
+    setSavingChallenge(true);
+    
+    const parentId = parent?.id || 'guest';
+    localStorage.setItem(`bb_challenge_target_${parentId}`, String(newTarget));
+    localStorage.setItem(`bb_challenge_reward_${parentId}`, newReward);
+
+    if (parent?.id && db) {
+      try {
+        await setDoc(doc(db, 'parents', parent.id), {
+          challengeTarget: newTarget,
+          challengeReward: newReward,
+        }, { merge: true });
+      } catch (err) {
+        console.error("Error saving challenge to Firestore:", err);
+      }
+    }
+    setSavingChallenge(false);
+    setShowSavedToast(true);
+    setTimeout(() => setShowSavedToast(false), 2000);
+  };
+
+  const handleSendEmailReport = async () => {
+    if (!parent?.email) return;
+    sound.playClick();
+    setSendingEmail(true);
+    setEmailStatus(null);
+
+    const totalFamilyStars = children.reduce((sum, c) => sum + getTotalStars(getProgress(c.id)), 0);
+
+    const reportHtml = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #F4F2FA; border-radius: 24px; color: #231347;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #8E6BFF; font-size: 28px; margin: 0; font-family: sans-serif;">BRAIN BUGS 🧠</h1>
+          <p style="font-size: 14px; color: #7B7193; margin: 4px 0 0 0;">Reporte Inteligente de Progreso Cognitivo</p>
+        </div>
+        
+        <div style="background-color: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">Resumen del Jugador: ${child?.nickname}</h2>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;">
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #7B7193;">Estrellas Ganadas:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #FFC83D;">⭐ ${totalStars}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #7B7193;">Nivel Actual:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold;">${child?.currentLevel}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #7B7193;">Rompecabezas Resueltos:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #3FD09E;">🧩 ${puzzlesSolved}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #7B7193;">Movimientos Promedio:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold;">${avgMoves || '—'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; color: #7B7193;">Pistas Utilizadas:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #FF7B5C;">💡 ${totalHints}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="background-color: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">Análisis de Habilidades Focus</h2>
+          ${skills.map(s => `
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 4px;">
+                <span>${s.label}</span>
+                <span style="color: ${s.color};">${s.value}%</span>
+              </div>
+              <div style="height: 8px; background-color: #F4F2FA; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; background-color: ${s.color}; width: ${s.value}%;"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="background-color: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">🤖 Diagnóstico del AI Coach</h2>
+          <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #231347;">📐 Lógica y Rotación Espacial:</p>
+          <p style="font-size: 13px; color: #665C7A; line-height: 1.5; margin: 0 0 12px 0;">
+            ${puzzlesSolved === 0 
+              ? 'Aún no hay datos de juego suficientes. Resuelve niveles para evaluar.'
+              : puzzlesSolved >= 10 
+              ? 'Desarrollo Avanzado: Demuestra una habilidad excepcional para predecir la orientación espacial y rotar bichos sin ensayar físicamente demasiadas veces.'
+              : 'Fase de Exploración: Está asimilando las restricciones de forma tridimensional. Muestra paciencia al ensayar giros en las esquinas.'}
+          </p>
+          <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #231347;">💪 Resiliencia Cognitiva (Tolerancia al Error):</p>
+          <p style="font-size: 13px; color: #665C7A; line-height: 1.5; margin: 0 0 12px 0;">
+            ${puzzlesSolved === 0 
+              ? 'Completar niveles revelará los hábitos de superación ante obstáculos.'
+              : totalHints === 0 
+              ? 'Autonomía Sobresaliente: Resuelve todos los retos de forma independiente sin apoyarse en pistas, lo que demuestra alta confianza ante problemas difíciles.'
+              : totalHints > puzzlesSolved * 1.5 
+              ? 'Búsqueda Estratégica: Utiliza las pistas como herramienta proactiva de aprendizaje para superar frustraciones, un gran rasgo de adaptabilidad.'
+              : 'Equilibrio Saludable: Intenta resolver de forma autónoma primero y acude a pistas cortas solo en bloqueos complejos.'}
+          </p>
+        </div>
+
+        <div style="background-color: #8E6BFF; padding: 20px; border-radius: 20px; color: #ffffff; text-align: center;">
+          <h3 style="font-size: 16px; margin: 0 0 8px 0; font-family: sans-serif;">🎮 Actividades Recomendadas Fuera de Pantalla</h3>
+          <p style="font-size: 12px; margin: 0; line-height: 1.5; opacity: 0.9;">
+            Visita tu Panel de Padres en la aplicación para ver dinámicas sugeridas como Tangram físico, preguntas de metacognición o rompecabezas tridimensionales de madera.
+          </p>
+        </div>
+      </div>
+    `;
+
+    if (db) {
+      try {
+        await setDoc(doc(collection(db, 'mail')), {
+          to: [parent.email],
+          message: {
+            subject: `Reporte de Progreso de Brain Bugs - ${child?.nickname || 'Hijo'}`,
+            html: reportHtml,
+          },
+          createdAt: new Date().toISOString(),
+        });
+        setEmailStatus({ type: 'success', message: `¡Reporte enviado con éxito a ${parent.email}! Revisa tu buzón.` });
+      } catch (err) {
+        console.error("Error writing to mail collection:", err);
+        setEmailStatus({ type: 'error', message: 'No se pudo guardar en Firestore. Mostrando simulación local.' });
+        setTimeout(() => {
+          setEmailStatus({ type: 'success', message: `[Simulación] Reporte enviado con éxito a ${parent.email}.` });
+        }, 1200);
+      }
+    } else {
+      setTimeout(() => {
+        setEmailStatus({ type: 'success', message: `[Simulación] Reporte enviado con éxito a ${parent.email}.` });
+      }, 1000);
+    }
+    setSendingEmail(false);
+  };
+
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('bb_parent_dark_mode') === 'true';
   });
@@ -528,6 +698,120 @@ export function ParentDashboard() {
           )}
         </div>
 
+        {/* Reto Familiar Cooperativo */}
+        <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>🎯 Reto Familiar Cooperativo</p>
+        <div className="rounded-3xl p-5 flex flex-col gap-4 relative overflow-hidden transition-colors"
+          style={{
+            background: isDarkMode ? '#1E0F33' : '#fff',
+            border: isDarkMode ? '1px solid #331C54' : 'none',
+            boxShadow: isDarkMode ? '0 8px 30px rgba(0,0,0,0.3), 0 3px 0 rgba(0,0,0,0.4)' : '0 8px 30px rgba(142,107,255,0.06), 0 3px 0 rgba(35,19,71,0.07)',
+          }}>
+          
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-xl flex-shrink-0">
+              🏆
+            </div>
+            <div>
+              <h4 className="font-bold text-base" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>Meta y Recompensa Familiar</h4>
+              <p className="text-[10px] font-bold text-amber-500" style={{fontFamily:'"Nunito",system-ui'}}>TRABAJO EN EQUIPO</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 mt-1">
+            <div>
+              <span className="text-xs font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.6)'}}>1. Elegir Meta de Estrellas Combinadas:</span>
+              <div className="flex gap-2 mt-1.5 overflow-x-auto no-scrollbar">
+                {[25, 50, 75, 100, 150].map(starsVal => (
+                  <button
+                    key={starsVal}
+                    onClick={() => {
+                      setChallengeTarget(starsVal);
+                      sound.playSnap();
+                    }}
+                    className="flex-1 py-2 px-3 rounded-xl font-bold text-xs transition-all active:scale-95 text-center flex-shrink-0 min-w-[50px]"
+                    style={{
+                      fontFamily: '"Fredoka",system-ui',
+                      background: challengeTarget === starsVal ? '#FFC83D' : (isDarkMode ? '#24133D' : '#F4F2FA'),
+                      color: challengeTarget === starsVal ? '#231347' : (isDarkMode ? '#D8B4FE' : '#231347'),
+                      border: challengeTarget === starsVal ? 'none' : (isDarkMode ? '1px solid #3E1B6B' : '1px solid rgba(0,0,0,0.05)'),
+                    }}
+                  >
+                    ⭐ {starsVal}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="text-xs font-bold" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.6)'}}>2. Definir Recompensa Familiar:</span>
+              <input
+                type="text"
+                value={challengeReward}
+                onChange={(e) => setChallengeReward(e.target.value)}
+                placeholder="Ej. ¡Una tarde de helados y películas!"
+                className="w-full mt-1.5 p-3 rounded-2xl text-xs font-semibold focus:outline-none transition-colors border"
+                style={{
+                  background: isDarkMode ? '#24133D' : '#F4F2FA',
+                  color: isDarkMode ? '#white' : '#231347',
+                  borderColor: isDarkMode ? '#3E1B6B' : 'rgba(35,19,71,0.1)',
+                }}
+              />
+            </div>
+
+            {/* Combined progress status */}
+            {(() => {
+              const totalFamilyStars = children.reduce((sum, c) => sum + getTotalStars(getProgress(c.id)), 0);
+              const progressPct = Math.min(100, Math.round((totalFamilyStars / challengeTarget) * 100));
+              const isChallengeMet = totalFamilyStars >= challengeTarget;
+              return (
+                <div className="p-3.5 rounded-2xl mt-2 border"
+                  style={{
+                    background: isDarkMode ? '#140824' : '#FFFBEB',
+                    borderColor: isDarkMode ? '#331C54' : '#FDE68A',
+                  }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-bold" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#D8B4FE' : '#B45309'}}>
+                      Progreso del Reto: {totalFamilyStars} / {challengeTarget} ⭐
+                    </span>
+                    <span className="text-xs font-extrabold" style={{fontFamily:'"Fredoka",system-ui', color: isChallengeMet ? '#10B981' : '#B45309'}}>
+                      {isChallengeMet ? '🔓 ¡Completado!' : `${progressPct}%`}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: isDarkMode ? '#05010B' : '#FEF3C7' }}>
+                    <div className="h-full rounded-full"
+                      style={{
+                        width: `${progressPct}%`,
+                        background: isChallengeMet
+                          ? 'linear-gradient(90deg, #10B981, #059669)'
+                          : 'linear-gradient(90deg, #FCD34D, #F59E0B)',
+                        transition: 'width 0.5s ease-out'
+                      }}
+                    />
+                  </div>
+                  <p className="text-[10px] mt-1.5 font-bold italic" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA/70' : 'rgba(35,19,71,0.5)'}}>
+                    {isChallengeMet 
+                      ? '🎉 ¡Enhorabuena! El reto ha sido superado por el esfuerzo combinado de los niños.' 
+                      : '💡 Las estrellas ganadas por todos los niños suman para desbloquear este premio.'}
+                  </p>
+                </div>
+              );
+            })()}
+
+            <button
+              onClick={() => handleSaveChallenge(challengeTarget, challengeReward)}
+              disabled={savingChallenge}
+              className="w-full mt-2 py-3 rounded-2xl font-bold text-xs text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+              style={{
+                fontFamily: '"Fredoka",system-ui',
+                background: showSavedToast ? '#10B981' : 'linear-gradient(90deg, #8E6BFF, #5A3BD1)',
+                boxShadow: showSavedToast ? '0 3px 0 #059669' : '0 3px 0 #3E1B6B',
+              }}
+            >
+              {showSavedToast ? '✓ ¡Guardado con éxito! 🎉' : savingChallenge ? 'Guardando...' : '💾 Guardar Reto Familiar'}
+            </button>
+          </div>
+        </div>
+
         {/* AI Coach Premium Report */}
         <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>🤖 AI Coach: Reporte de Inteligencia y Desarrollo</p>
         <div className="rounded-3xl p-5 flex flex-col gap-4 relative overflow-hidden transition-colors"
@@ -620,6 +904,37 @@ export function ParentDashboard() {
                 </li>
               </ul>
             </div>
+
+            {/* Email Report Button */}
+            <div className="mt-2 border-t pt-3.5" style={{ borderColor: isDarkMode ? '#3E1B6B' : '#E9D5FF' }}>
+              <button
+                onClick={handleSendEmailReport}
+                disabled={sendingEmail || !parent?.email}
+                className="w-full py-3 rounded-2xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-2"
+                style={{
+                  fontFamily: '"Fredoka",system-ui',
+                  background: isDarkMode ? '#3A1C6A' : '#F5F3FF',
+                  color: isDarkMode ? '#E9D5FF' : '#8E6BFF',
+                  border: isDarkMode ? '1px solid #5C32A5' : '1px solid #E9D5FF',
+                }}
+              >
+                {sendingEmail ? 'Enviando reporte...' : '📨 Enviar reporte a mi correo'}
+              </button>
+              
+              {emailStatus && (
+                <div 
+                  className={`mt-2 p-3 rounded-xl text-center text-xs font-semibold border ${
+                    emailStatus.type === 'success' 
+                      ? (isDarkMode ? 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700') 
+                      : (isDarkMode ? 'bg-red-950/30 border-red-900/50 text-red-400' : 'bg-red-50 border-red-200 text-red-700')
+                  }`}
+                  style={{ fontFamily: '"Nunito",system-ui' }}
+                >
+                  {emailStatus.message}
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
 

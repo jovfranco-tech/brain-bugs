@@ -173,8 +173,20 @@ class SoundManager {
     this.isMusicPlaying = true;
     let step = 0;
     
-    // Play a gentle arpeggio arround a major 7 chord
-    const notes = [261.63, 329.63, 392.00, 493.88, 587.33, 493.88, 392.00, 329.63];
+    // Upbeat child-friendly major-pentatonic chiptune melody
+    const melody = [
+      329.63, 392.00, 440.00, 523.25, // E4, G4, A4, C5
+      392.00, 523.25, 587.33, 659.25, // G4, C5, D5, E5
+      523.25, 659.25, 783.99, 880.00, // C5, E5, G5, A5
+      783.99, 659.25, 587.33, 523.25, // G5, E5, D5, C5
+      440.00, 523.25, 392.00, 523.25, // A4, C5, G4, C5
+      329.63, 392.00, 261.63, 329.63, // E4, G4, C4, E4
+      392.00, 440.00, 523.25, 587.33, // G4, A4, C5, D5
+      659.25, 783.99, 880.00, 1046.50 // E5, G5, A5, C6
+    ];
+
+    // Warm, bouncy bass accompaniment
+    const bass = [130.81, 196.00, 164.81, 220.00]; // C3, G3, E3, A3
 
     this.musicInterval = setInterval(() => {
       if (!this.ctx || !this.isMusicPlaying) return;
@@ -185,24 +197,42 @@ class SoundManager {
         }
       } catch (_) {}
 
+      const now = this.ctx.currentTime;
+      const freq = melody[step % melody.length];
+
+      // 1. Play melody note (Triangle wave - soft and playful)
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
+      
       osc.type = 'triangle';
-      const now = this.ctx.currentTime;
-      const freq = notes[step % notes.length];
-
       osc.frequency.setValueAtTime(freq, now);
-      gain.gain.setValueAtTime(0.015, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      gain.gain.setValueAtTime(0.012, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
 
       osc.start(now);
-      osc.stop(now + 0.65);
+      osc.stop(now + 0.3);
+
+      // 2. Play bass note (Sine wave - warm and deep) every 4 steps (on the beat)
+      if (step % 4 === 0) {
+        const bassFreq = bass[Math.floor(step / 4) % bass.length];
+        const bassOsc = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bassOsc.connect(bassGain);
+        bassGain.connect(this.ctx.destination);
+        
+        bassOsc.type = 'sine';
+        bassOsc.frequency.setValueAtTime(bassFreq, now);
+        bassGain.gain.setValueAtTime(0.022, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.58);
+
+        bassOsc.start(now);
+        bassOsc.stop(now + 0.6);
+      }
 
       step++;
-    }, 750);
+    }, 260); // fast bouncy 260ms tempo
   }
 
   stopMusic() {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Landing from './screens/Landing';
@@ -11,9 +11,25 @@ import { VictoryScreen, RewardsScreen, ParentDashboard, SettingsScreen } from '.
 import BugLab from './screens/BugLab';
 import AccessoryStore from './screens/AccessoryStore';
 import ScreenTimeBlockerOverlay from './components/ScreenTimeBlockerOverlay';
+import { sound } from './lib/sound';
 
 function AppRouter() {
-  const { screen, isScreenTimeLocked } = useApp();
+  const { screen, isScreenTimeLocked, currentChild } = useApp();
+
+  // Handle browser audio context unlock upon first user interaction
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (currentChild && sound.getMusicEnabled()) {
+        sound.startMusic();
+      }
+    };
+    window.addEventListener('click', handleInteraction, { once: true });
+    window.addEventListener('pointerdown', handleInteraction, { once: true });
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('pointerdown', handleInteraction);
+    };
+  }, [currentChild]);
 
   const renderScreen = () => {
     switch (screen) {

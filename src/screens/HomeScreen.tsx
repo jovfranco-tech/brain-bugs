@@ -5,6 +5,8 @@ import BottomNav from '../components/BottomNav';
 import { useApp } from '../contexts/AppContext';
 import type { AvatarId } from '../types';
 import { getProgress, getTotalStars } from '../lib/storage';
+import { db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AVATAR: Record<AvatarId, { bg: string; emoji: string }> = {
   buzzy:{bg:'#FFD55E',emoji:'🐝'}, pip:{bg:'#3FD09E',emoji:'🐛'},
@@ -35,13 +37,42 @@ function NavPill({ icon, label, sub, color, onClick }: {
 }
 
 export default function HomeScreen() {
-  const { currentChild, navigate } = useApp();
+  const { currentChild, navigate, children, parent } = useApp();
   if (!currentChild) return null;
 
   const av = AVATAR[currentChild.avatarId] ?? AVATAR.buzzy;
   const progress = getProgress(currentChild.id);
   const totalStars = getTotalStars(progress);
   const puzzlesSolved = Object.values(progress.levelProgress).filter(l => l.stars > 0).length;
+
+  const [challengeTarget, setChallengeTarget] = React.useState<number>(50);
+  const [challengeReward, setChallengeReward] = React.useState<string>("¡Una tarde de helados y películas!");
+
+  React.useEffect(() => {
+    const parentId = parent?.id || 'guest';
+    const localTarget = localStorage.getItem(`bb_challenge_target_${parentId}`);
+    const localReward = localStorage.getItem(`bb_challenge_reward_${parentId}`);
+    if (localTarget) setChallengeTarget(parseInt(localTarget, 10));
+    if (localReward) setChallengeReward(localReward);
+
+    if (parent?.id && db) {
+      getDoc(doc(db, 'parents', parent.id)).then(snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.challengeTarget !== undefined) {
+            setChallengeTarget(data.challengeTarget);
+            localStorage.setItem(`bb_challenge_target_${parent.id}`, String(data.challengeTarget));
+          }
+          if (data.challengeReward !== undefined) {
+            setChallengeReward(data.challengeReward);
+            localStorage.setItem(`bb_challenge_reward_${parent.id}`, data.challengeReward);
+          }
+        }
+      }).catch(err => console.warn("Error fetching parent challenge in home:", err));
+    }
+  }, [parent]);
+
+  const totalFamilyStars = children.reduce((sum, c) => sum + getTotalStars(getProgress(c.id)), 0);
 
   const today = new Date();
   const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
@@ -209,6 +240,67 @@ export default function HomeScreen() {
               {isDailySolved ? '✓' : '▶'}
             </div>
           </button>
+        </div>
+
+        {/* Collaborative Quest Progress Card */}
+        <div className="mx-4 mt-2 mb-1.5">
+          <div
+            className="flex flex-col p-4 rounded-3xl transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #FFFDF5 0%, #FEF8D9 100%)',
+              border: totalFamilyStars >= challengeTarget ? '2.5px solid #10B981' : '2.5px dashed #F59E0B',
+              boxShadow: '0 6px 0 rgba(245,158,11,0.12), 0 8px 20px rgba(245,158,11,0.05)',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
+                style={{
+                  background: totalFamilyStars >= challengeTarget ? '#D1FAE5' : '#FEF3C7',
+                  boxShadow: 'inset 0 -3px 0 rgba(0,0,0,0.08)',
+                }}
+              >
+                {totalFamilyStars >= challengeTarget ? '🎁' : '🔒'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span
+                  className="px-2 py-0.5 rounded-full text-white font-bold uppercase"
+                  style={{
+                    background: totalFamilyStars >= challengeTarget ? '#10B981' : '#F59E0B',
+                    fontSize: 8,
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  {totalFamilyStars >= challengeTarget ? '¡Reto Cumplido!' : 'Reto en Familia'}
+                </span>
+                <h4 className="font-bold text-ink text-sm mt-0.5 leading-tight" style={{ fontFamily: '"Fredoka",system-ui' }}>
+                  {totalFamilyStars >= challengeTarget ? '🔓 ¡Premio Disponible!' : 'Estrellas en Equipo'}
+                </h4>
+                <p className="text-[11px] text-ink/75 font-semibold leading-snug mt-0.5" style={{ fontFamily: '"Nunito",system-ui' }}>
+                  Premio: <strong className="text-amber-700">{challengeReward}</strong>
+                </p>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-3">
+              <div className="flex justify-between items-center text-[10px] font-bold text-amber-700 mb-1" style={{ fontFamily: '"Fredoka",system-ui' }}>
+                <span>Progreso de Estrellas de los Niños</span>
+                <span>{totalFamilyStars} / {challengeTarget} ⭐</span>
+              </div>
+              <div className="h-2.5 rounded-full overflow-hidden" style={{ background: '#FEF3C7', border: '1px solid rgba(245,158,11,0.15)' }}>
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${Math.min(100, Math.round((totalFamilyStars / challengeTarget) * 100))}%`,
+                    background: totalFamilyStars >= challengeTarget 
+                      ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
+                      : 'linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Nav buttons */}
