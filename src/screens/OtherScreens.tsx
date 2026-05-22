@@ -299,11 +299,21 @@ export function RewardsScreen() {
             const earned = progress.badges.includes(badge.id);
             return (
               <button key={badge.id}
-                onClick={() => earned && setSelectedBadge(badge.id)}
+                onClick={() => {
+                  if (earned) {
+                    setSelectedBadge(badge.id);
+                    confetti({
+                      particleCount: 30,
+                      spread: 40,
+                      origin: { y: 0.6 }
+                    });
+                  }
+                }}
                 className="flex flex-col items-center p-3 rounded-2xl transition-all active:scale-95"
                 style={{
                   background: earned ? `${badge.color}1A` : 'rgba(255,255,255,0.05)',
                   border: earned ? `2px solid ${badge.color}55` : '2px solid rgba(255,255,255,0.08)',
+                  boxShadow: earned ? `0 0 16px ${badge.color}4D, inset 0 0 8px ${badge.color}26` : 'none',
                   opacity: earned ? 1 : 0.45,
                   cursor: earned ? 'pointer' : 'default',
                 }}>

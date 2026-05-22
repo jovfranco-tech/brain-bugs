@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { BugKind } from '../types';
 import { BUG_COLORS } from '../data/characters';
 
@@ -8,11 +8,44 @@ interface BugSvgProps {
   className?: string;
   animated?: boolean;
   accessoryId?: string | null;
+  expression?: 'normal' | 'blink' | 'wink' | 'stars';
 }
 
 
-function Eyes({ cx1, cx2, cy, r = 7 }: { cx1: number; cx2: number; cy: number; r?: number }) {
+function Eyes({ cx1, cx2, cy, r = 7, expression = 'normal' }: { cx1: number; cx2: number; cy: number; r?: number; expression?: 'normal' | 'blink' | 'wink' | 'stars' }) {
   const pr = r * 0.56;
+  
+  if (expression === 'blink') {
+    return (
+      <g>
+        <path d={`M ${cx1 - r} ${cy} Q ${cx1} ${cy + r * 0.4} ${cx1 + r} ${cy}`} stroke="#231347" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        <path d={`M ${cx2 - r} ${cy} Q ${cx2} ${cy + r * 0.4} ${cx2 + r} ${cy}`} stroke="#231347" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      </g>
+    );
+  }
+
+  if (expression === 'wink') {
+    return (
+      <g>
+        <circle cx={cx1} cy={cy} r={r} fill="#fff"/>
+        <circle cx={cx1+0.8} cy={cy+0.5} r={pr} fill="#231347"/>
+        <circle cx={cx1+1.8} cy={cy-1.5} r={pr*0.42} fill="#fff"/>
+        <path d={`M ${cx2 - r} ${cy} Q ${cx2} ${cy + r * 0.4} ${cx2 + r} ${cy}`} stroke="#231347" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      </g>
+    );
+  }
+
+  if (expression === 'stars') {
+    return (
+      <g>
+        <circle cx={cx1} cy={cy} r={r} fill="#fff"/>
+        <circle cx={cx2} cy={cy} r={r} fill="#fff"/>
+        <text x={cx1} y={cy + r * 0.35} fontSize={r * 1.8} textAnchor="middle" dominantBaseline="middle">⭐</text>
+        <text x={cx2} y={cy + r * 0.35} fontSize={r * 1.8} textAnchor="middle" dominantBaseline="middle">⭐</text>
+      </g>
+    );
+  }
+
   return (
     <g>
       <circle cx={cx1} cy={cy} r={r} fill="#fff"/>
@@ -76,7 +109,22 @@ function Accessory({ id }: { id: string }) {
   return null;
 }
 
-export default function BugSvg({ kind, size = 80, className = '', animated = false, accessoryId = null }: BugSvgProps) {
+export default function BugSvg({ kind, size = 80, className = '', animated = false, accessoryId = null, expression }: BugSvgProps) {
+  const [isBlinking, setIsBlinking] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsBlinking(true);
+      const timeout = setTimeout(() => {
+        setIsBlinking(false);
+      }, 150);
+      return () => clearTimeout(timeout);
+    }, 4000 + Math.random() * 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeExpression = expression || (isBlinking ? 'blink' : 'normal');
 
   const c = BUG_COLORS[kind];
   const anim = animated ? 'animate-float' : '';
@@ -100,7 +148,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <ellipse cx="76" cy="62" rx="18" ry="16" fill={c.color}/>
       <ellipse cx="50" cy="57" rx="21" ry="20" fill="url(#pip-g)"/>
       <ellipse cx="76" cy="62" rx="18" ry="16" fill="none" stroke={c.dark} strokeWidth="1.5" opacity="0.25"/>
-      <Eyes cx1={43} cx2={57} cy={53}/>
+      <Eyes cx1={43} cx2={57} cy={53} expression={activeExpression}/>
       <Smile x={50} y={66} w={11}/>
       <ellipse cx="38" cy="64" rx="3.5" ry="2.2" fill="#FF8AB0" opacity="0.5"/>
       <ellipse cx="62" cy="64" rx="3.5" ry="2.2" fill="#FF8AB0" opacity="0.5"/>
@@ -121,7 +169,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <circle cx="40" cy="73" r="3.5" fill={c.dark} opacity="0.4"/>
       <circle cx="62" cy="75" r="2.8" fill={c.dark} opacity="0.4"/>
       <circle cx="68" cy="60" r="2" fill={c.dark} opacity="0.4"/>
-      <Eyes cx1={42} cx2={58} cy={52} r={7.5}/>
+      <Eyes cx1={42} cx2={58} cy={52} r={7.5} expression={activeExpression}/>
       <Smile x={50} y={66} w={13}/>
       {accessoryId && <Accessory id={accessoryId}/>}
     </svg>
@@ -139,7 +187,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <g clipPath="url(#zig-clip)">
         <rect x="40" y="35" width="11" height="60" fill={c.dark} opacity="0.8" transform="rotate(20 50 60)"/>
       </g>
-      <Eyes cx1={42} cx2={58} cy={55}/>
+      <Eyes cx1={42} cx2={58} cy={55} expression={activeExpression}/>
       <Smile x={50} y={69} w={11}/>
       {accessoryId && <Accessory id={accessoryId}/>}
     </svg>
@@ -156,7 +204,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <circle cx="35" cy="70" r="3" fill="#fff" opacity="0.8"/>
       <circle cx="64" cy="76" r="3.5" fill="#fff" opacity="0.8"/>
       <circle cx="60" cy="55" r="2" fill="#fff" opacity="0.8"/>
-      <Eyes cx1={42} cx2={58} cy={54}/>
+      <Eyes cx1={42} cx2={58} cy={54} expression={activeExpression}/>
       <Smile x={50} y={68} w={12}/>
       {accessoryId && <Accessory id={accessoryId}/>}
     </svg>
@@ -174,7 +222,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <rect x="33" y="27" width="34" height="7" rx="2" fill="#231347"/>
       <polygon points="50,17 70,27 50,33 30,27" fill="#231347"/>
       <circle cx="50" cy="19" r="2.8" fill="#FFC83D"/>
-      <Eyes cx1={42} cx2={58} cy={56}/>
+      <Eyes cx1={42} cx2={58} cy={56} expression={activeExpression}/>
       <Smile x={50} y={70} w={13}/>
       <ellipse cx="36" cy="66" rx="3" ry="2" fill="#FF6F88" opacity="0.5"/>
       <ellipse cx="64" cy="66" rx="3" ry="2" fill="#FF6F88" opacity="0.5"/>
@@ -191,7 +239,7 @@ export default function BugSvg({ kind, size = 80, className = '', animated = fal
       <circle cx="34" cy="16" r="3.2" fill={c.dark}/>
       <circle cx="66" cy="16" r="3.2" fill={c.dark}/>
       <ellipse cx="50" cy="59" rx="26" ry="24" fill="url(#rose-g)"/>
-      <Eyes cx1={42} cx2={58} cy={54}/>
+      <Eyes cx1={42} cx2={58} cy={54} expression={activeExpression}/>
       <Smile x={50} y={66} w={11}/>
       {accessoryId && <Accessory id={accessoryId}/>}
     </svg>

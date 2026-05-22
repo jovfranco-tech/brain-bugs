@@ -57,10 +57,10 @@ function AppRouter() {
       <AnimatePresence mode="wait">
         <motion.div
           key={screen}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.22, ease: [0.34, 1.56, 0.64, 1] }}
           className="absolute inset-0 w-full h-full"
         >
           {renderScreen()}

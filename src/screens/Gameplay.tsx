@@ -830,8 +830,8 @@ export default function Gameplay() {
                         ? previewData.valid ? 'rgba(63,208,158,0.38)' : 'rgba(255,80,80,0.32)'
                         : cell.pieceId ? 'transparent' : nightMode ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.055)',
                     boxShadow: cell.blocked ? 'none'
-                      : inPreview ? `inset 0 0 0 2px ${previewData.valid ? '#3FD09E' : '#FF5050'}`
-                      : 'inset 0 2px 4px rgba(0,0,0,0.5)',
+                      : inPreview ? `inset 0 0 0 2.5px ${previewData.valid ? '#3FD09E' : '#FF5050'}, 0 0 10px ${previewData.valid ? 'rgba(63,208,158,0.2)' : 'rgba(255,80,80,0.15)'}`
+                      : 'inset 0 3px 6px rgba(0,0,0,0.48), 0 0 0 1px rgba(255,255,255,0.03)',
                     cursor: cell.blocked || cell.pieceId ? 'default' : 'pointer',
                     transition: 'background 0.07s, box-shadow 0.07s',
                     position: 'relative',
@@ -960,7 +960,7 @@ export default function Gameplay() {
               ease: "easeInOut"
             }}
           >
-            <BugSvg kind="coach" size={46}/>
+            <BugSvg kind="coach" size={46} expression={isSpeaking ? 'stars' : 'normal'}/>
           </motion.div>
           <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-mint border-2 border-white"
             style={{ background:'#3FD09E' }}/>
