@@ -4,6 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import BugSvg from '../components/BugSvg';
 import BottomNav from '../components/BottomNav';
 import { sound } from '../lib/sound';
+import confetti from 'canvas-confetti';
 
 interface AccessoryItem {
   id: string;
@@ -50,6 +51,13 @@ export default function AccessoryStore() {
       if (xp >= selectedItem.cost) {
         unlockAccessory(currentChild.id, selectedItem.id, selectedItem.cost);
         sound.playVictory();
+        
+        // Confetti celebration burst centered on showcase
+        confetti({
+          particleCount: 90,
+          spread: 60,
+          origin: { y: 0.35 }
+        });
       } else {
         sound.playError();
       }
@@ -126,6 +134,31 @@ export default function AccessoryStore() {
                 background: 'radial-gradient(ellipse at center, rgba(142,107,255,0.6) 0%, rgba(142,107,255,0) 80%)',
               }}
             />
+            {/* Pedestal Magical Sparks */}
+            {[...Array(8)].map((_, idx) => {
+              const delay = idx * 0.45;
+              const leftOffset = 25 + (idx * 17) % 50; // scatter around center
+              const size = 3 + (idx * 3) % 5;
+              const colors = ['#FFD55E', '#3FD09E', '#8E6BFF', '#5BC5FF', '#FF6FA8'];
+              const color = colors[idx % colors.length];
+              return (
+                <div
+                  key={idx}
+                  className="absolute pointer-events-none"
+                  style={{
+                    bottom: '16px',
+                    left: `${leftOffset}%`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    borderRadius: '50%',
+                    background: color,
+                    boxShadow: `0 0 6px ${color}`,
+                    animation: `riseUp 3.2s ease-in-out infinite`,
+                    animationDelay: `${delay}s`,
+                  }}
+                />
+              );
+            })}
             {/* Companion Bug with Live Preview of selected accessory (if unlocked) or currently equipped */}
             <motion.div
               animate={{ y: [-5, 5, -5] }}
@@ -275,6 +308,14 @@ export default function AccessoryStore() {
 
       {/* Navigation */}
       <BottomNav />
+      
+      <style>{`
+        @keyframes riseUp {
+          0% { transform: translateY(12px) scale(0.3); opacity: 0; }
+          50% { opacity: 0.95; }
+          100% { transform: translateY(-70px) scale(1.1); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
