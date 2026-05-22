@@ -66,8 +66,14 @@ export function VictoryScreen() {
     }
   }, []);
 
-  if (!victoryData) { navigate('world-map'); return null; }
-  const { stars, moves, hintsUsed, newBadges, levelId } = victoryData;
+  useEffect(() => {
+    if (!victoryData) {
+      navigate('world-map');
+    }
+  }, [victoryData, navigate]);
+
+  if (!victoryData) return null;
+  const { stars, moves, hintsUsed, newBadges = [], levelId } = victoryData;
 
   // Find the next level to play
   const allLevels = getAllLevels();
@@ -86,10 +92,14 @@ export function VictoryScreen() {
     }
   };
 
-  const levelLabel = levelId
-    .replace('meadow-l','Nivel Pradera ')
-    .replace('crystal-l','Nivel Cueva ')
-    .replace('robo-l','Nivel Arrecife ');
+  const levelLabel = levelId.startsWith('daily-')
+    ? 'Desafío Diario'
+    : levelId.startsWith('custom-')
+      ? 'Nivel Personalizado'
+      : levelId
+          .replace('meadow-l','Nivel Pradera ')
+          .replace('crystal-l','Nivel Cueva ')
+          .replace('robo-l','Nivel Arrecife ');
 
   const msgMap = { 3:'🎉 ¡Perfecto! ¡Qué gran mente!', 2:'⭐ ¡Excelente trabajo! ¡Casi perfecto!', 1:'✅ ¡Resuelto! ¡Sigue practicando!' };
   const headline = msgMap[stars as 1|2|3] ?? '¡Lo lograste!';
