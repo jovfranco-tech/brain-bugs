@@ -127,14 +127,18 @@ export default function AccessoryStore() {
               }}
             />
             {/* Companion Bug with Live Preview of selected accessory (if unlocked) or currently equipped */}
-            <div className="relative z-10 transform scale-110">
+            <motion.div
+              animate={{ y: [-5, 5, -5] }}
+              transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
+              className="relative z-10 transform scale-110"
+            >
               <BugSvg
                 kind={currentChild.bugCompanion}
                 size={112}
                 animated
                 accessoryId={isSelectedUnlocked ? selectedItem.id : activeId}
               />
-            </div>
+            </motion.div>
           </div>
 
           {/* Locked Badge Overlay */}
@@ -222,13 +226,15 @@ export default function AccessoryStore() {
               const isSelected = selectedId === item.id;
 
               return (
-                <button
+                <motion.button
                   key={item.id}
                   onClick={() => {
                     setSelectedId(item.id);
                     sound.playDrag();
                   }}
-                  className="aspect-square flex flex-col items-center justify-center p-2 rounded-2xl relative transition-all active:scale-95 border"
+                  whileHover={{ scale: 1.06, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="aspect-square flex flex-col items-center justify-center p-2 rounded-2xl relative border"
                   style={{
                     background: isSelected
                       ? 'rgba(142, 107, 255, 0.15)'
@@ -260,7 +266,7 @@ export default function AccessoryStore() {
                       {item.cost} XP
                     </span>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>

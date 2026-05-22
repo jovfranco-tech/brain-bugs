@@ -7,6 +7,7 @@ import { applyRotation, shapeSize, makePiece } from '../data/characters';
 import BugSvg from '../components/BugSvg';
 import StarRating from '../components/StarRating';
 import { sound } from '../lib/sound';
+import confetti from 'canvas-confetti';
 
 // ─── Board helpers ────────────────────────────────────────────
 function buildEmptyBoard(puzzle: Puzzle): BoardCell[][] {
@@ -183,19 +184,69 @@ interface Particle {
   size: number;
 }
 
+interface AmbientParticle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  speed: number;
+  opacity: number;
+}
+
 // ─── Main Gameplay Screen ─────────────────────────────────────
 export default function Gameplay() {
   const { navigate, screenParams, currentChild, completeLevel, setVictoryData } = useApp();
   const { levelId = '', worldId = '' } = screenParams;
 
-  const speakText = (text: string) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(() => {
+    return localStorage.getItem('brain_bugs_auto_speak') === 'true';
+  });
+  const [ambientParticles, setAmbientParticles] = useState<AmbientParticle[]>([]);
+
+  const speakText = useCallback((text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Remove emojis or special symbols so speech sounds clean
+      const cleanText = text.replace(/[🎉💡👣⭐🏆🧼🤖💎🌊🌋🚀✨🔴💥💨😴⚙️🔒⏱👥🔄]/g, '').trim();
+      if (!cleanText) {
+        setIsSpeaking(false);
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'es-ES';
+      utterance.pitch = 1.35; // friendly childlike cartoon pitch
+      utterance.rate = 1.0;   // normal comfortable rate
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
       window.speechSynthesis.speak(utterance);
     }
-  };
+  }, []);
+
+  // Cancel speech on unmount
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const toggleAutoSpeak = useCallback(() => {
+    sound.playClick();
+    setAutoSpeak(prev => {
+      const next = !prev;
+      localStorage.setItem('brain_bugs_auto_speak', String(next));
+      if (!next && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+      return next;
+    });
+  }, []);
 
   const puzzle = useMemo(() => {
     if (!levelId) return null;
@@ -269,6 +320,49 @@ export default function Gameplay() {
   const [hoverCell,   setHoverCell]   = useState<{ col: number; row: number } | null>(null);
   const [boardRect,   setBoardRect]   = useState<DOMRect | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+
+  // Generate ambient particles
+  useEffect(() => {
+    if (!puzzle) return;
+    const initial: AmbientParticle[] = Array.from({ length: 15 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 6 + (worldId === 'ocean' ? 6 : 4),
+      speed: Math.random() * 0.12 + 0.04,
+      opacity: Math.random() * 0.4 + 0.1,
+    }));
+    setAmbientParticles(initial);
+  }, [levelId, worldId, puzzle]);
+
+  // Animate ambient particles upward
+  useEffect(() => {
+    if (ambientParticles.length === 0) return;
+    const interval = setInterval(() => {
+      setAmbientParticles(prev => prev.map(p => {
+        let newY = p.y - p.speed;
+        if (newY < -5) {
+          return {
+            ...p,
+            x: Math.random() * 100,
+            y: 105,
+            size: Math.random() * 6 + (worldId === 'ocean' ? 6 : 4),
+            speed: Math.random() * 0.12 + 0.04,
+            opacity: Math.random() * 0.4 + 0.1,
+          };
+        }
+        return { ...p, y: newY };
+      }));
+    }, 45);
+    return () => clearInterval(interval);
+  }, [ambientParticles.length, worldId]);
+
+  // Auto-read coach message when it changes
+  useEffect(() => {
+    if (autoSpeak && coachMsg) {
+      speakText(coachMsg);
+    }
+  }, [coachMsg, autoSpeak, speakText]);
 
   const getRotation = (id: string): 0|1|2|3 => (rotations[id] ?? 0) as 0|1|2|3;
 
@@ -353,6 +447,13 @@ export default function Gameplay() {
       setSolved(true);
       setSolveGlow(true);
       sound.playVictory();
+      
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+
       const stars = calcStars(moves + 1, puzzle.maxMoves);
       setCoachMsg("¡Rompecabezas resuelto! ¡Increíble trabajo! 🎉");
       setTimeout(() => {
@@ -453,6 +554,13 @@ export default function Gameplay() {
     if (isBoardSolved(board)) {
       setSolved(true);
       sound.playVictory();
+
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+
       const stars = calcStars(moves, puzzle.maxMoves);
       setCoachMsg("¡Rompecabezas resuelto! ¡Lo lograste! 🎉");
       const badges = completeLevel(levelId, worldId as WorldId, stars, moves, hintsUsed);
@@ -546,12 +654,61 @@ export default function Gameplay() {
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      {/* Starfield */}
-      {[...Array(16)].map((_,i) => (
-        <div key={i} className="absolute rounded-full bg-white pointer-events-none"
-          style={{ left:`${(i*73+10)%360}px`, top:`${(i*97)%650}px`,
-                   width:`${1+(i%3)}px`, height:`${1+(i%3)}px`, opacity:0.22+(i%4)*0.08 }}/>
-      ))}
+      {/* ── Ambient themed particles ─────────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {ambientParticles.map(p => {
+          let style: React.CSSProperties = {
+            position: 'absolute',
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            opacity: p.opacity,
+            transition: 'top 0.05s linear',
+          };
+
+          if (worldId === 'ocean') {
+            return (
+              <div
+                key={p.id}
+                style={{
+                  ...style,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(147, 197, 253, 0.45)',
+                  background: 'rgba(191, 219, 254, 0.15)',
+                }}
+              />
+            );
+          } else if (worldId === 'volcano') {
+            return (
+              <div
+                key={p.id}
+                style={{
+                  ...style,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(to top, #EF4444, #F97316)',
+                  boxShadow: '0 0 8px #F97316',
+                  filter: 'blur(0.5px)',
+                }}
+              />
+            );
+          } else {
+            // Space / standard stars
+            return (
+              <div
+                key={p.id}
+                className="animate-pulse"
+                style={{
+                  ...style,
+                  borderRadius: '50%',
+                  background: '#FFF',
+                  boxShadow: '0 0 6px rgba(255, 255, 255, 0.8)',
+                }}
+              />
+            );
+          }
+        })}
+      </div>
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="relative z-20 flex items-center justify-between px-4 pt-14 pb-2 flex-shrink-0">
@@ -729,23 +886,58 @@ export default function Gameplay() {
       <div className="relative z-10 mx-3 mb-2 flex items-center gap-3 p-3 rounded-2xl bg-white flex-shrink-0"
         style={{ boxShadow:'0 4px 0 rgba(0,0,0,0.22)', minHeight: 62 }}>
         <div className="flex-shrink-0 relative">
-          <BugSvg kind="coach" size={46}/>
+          <motion.div
+            animate={isSpeaking ? {
+              scale: [1, 1.08, 0.96, 1.06, 1],
+              rotate: [0, 1.5, -1.5, 1.5, 0],
+            } : {}}
+            transition={{
+              repeat: Infinity,
+              duration: 1.2,
+              ease: "easeInOut"
+            }}
+          >
+            <BugSvg kind="coach" size={46}/>
+          </motion.div>
           <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-mint border-2 border-white"
             style={{ background:'#3FD09E' }}/>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold uppercase tracking-widest mb-0.5"
-              style={{ color:'#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
-              ENTRENADOR BUG
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-bold uppercase tracking-widest"
+                style={{ color:'#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
+                ENTRENADOR BUG
+              </div>
+              {isSpeaking && (
+                <div className="flex items-end gap-0.5 h-3 px-1">
+                  <div className="w-0.5 bg-[#FF8A4C] rounded-full animate-wave-bar-1 animate-pulse" style={{ height: '100%', minHeight: '4px' }} />
+                  <div className="w-0.5 bg-[#FF8A4C] rounded-full animate-wave-bar-2 animate-pulse" style={{ height: '60%', minHeight: '4px' }} />
+                  <div className="w-0.5 bg-[#FF8A4C] rounded-full animate-wave-bar-3 animate-pulse" style={{ height: '80%', minHeight: '4px' }} />
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => speakText(coachMsg)}
-              className="text-[10px] font-bold text-[#FF8A4C] hover:scale-105 active:scale-95 px-1.5 py-0.5 rounded bg-orange-100 flex items-center gap-0.5"
-              title="Escuchar entrenador"
-            >
-              <span>🔊</span><span>Escuchar</span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={toggleAutoSpeak}
+                className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded transition-all active:scale-95 flex items-center gap-0.5 ${
+                  autoSpeak ? 'bg-orange-500 text-white shadow-sm' : 'bg-orange-50/70 text-[#FF8A4C] border border-orange-200/50'
+                }`}
+                style={{ fontFamily: '"Fredoka",system-ui' }}
+                title={autoSpeak ? "Auto-voz activada" : "Activar auto-voz"}
+              >
+                <span>📢</span>
+                <span>{autoSpeak ? "Auto-Voz: SI" : "Auto-Voz"}</span>
+              </button>
+              <button
+                onClick={() => speakText(coachMsg)}
+                className="text-[9px] font-extrabold text-[#FF8A4C] hover:scale-105 active:scale-95 px-1.5 py-0.5 rounded bg-orange-100 flex items-center gap-0.5"
+                style={{ fontFamily: '"Fredoka",system-ui' }}
+                title="Escuchar entrenador"
+              >
+                <span>🔊</span><span>Leer</span>
+              </button>
+            </div>
           </div>
           <p className="text-sm font-bold text-ink leading-snug" style={{ fontFamily:'"Nunito",system-ui' }}>
             {coachMsg}
@@ -829,6 +1021,13 @@ export default function Gameplay() {
           50%  { opacity:1; }
           100% { opacity:0; }
         }
+        @keyframes waveBar {
+          0%, 100% { transform: scaleY(0.4); }
+          50% { transform: scaleY(1.4); }
+        }
+        .animate-wave-bar-1 { animation: waveBar 0.5s ease-in-out infinite; transform-origin: bottom; }
+        .animate-wave-bar-2 { animation: waveBar 0.75s ease-in-out infinite 0.12s; transform-origin: bottom; }
+        .animate-wave-bar-3 { animation: waveBar 0.65s ease-in-out infinite 0.22s; transform-origin: bottom; }
       `}</style>
     </div>
   );

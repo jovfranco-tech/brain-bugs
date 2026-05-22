@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
 import StarRating from '../components/StarRating';
 import { useApp } from '../contexts/AppContext';
@@ -58,8 +59,19 @@ function WorldCard({ world, totalStars, levelProgress, onSelectLevel }: {
     totalStars >= l.requiredStars && !(levelProgress[l.id]?.stars)
   );
 
+  const worldIndex = WORLDS.findIndex(w => w.id === world.id);
+  const floatDuration = 3.5 + (worldIndex % 3) * 0.7; // beautiful stagger durations so islands float naturally out of sync
+
   return (
-    <div className="mx-4 mb-5">
+    <motion.div
+      className="mx-4 mb-5"
+      animate={{ y: [-4, 4, -4] }}
+      transition={{
+        repeat: Infinity,
+        duration: floatDuration,
+        ease: "easeInOut",
+      }}
+    >
       <div className="rounded-3xl overflow-hidden" style={{
         background: isUnlocked
           ? `linear-gradient(160deg,${c.light} 0%,${c.mid} 55%,${c.dark} 100%)`
@@ -130,7 +142,7 @@ function WorldCard({ world, totalStars, levelProgress, onSelectLevel }: {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

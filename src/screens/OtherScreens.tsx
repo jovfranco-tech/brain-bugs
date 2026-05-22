@@ -7,6 +7,7 @@ import { BADGES, BADGE_MAP } from '../data/badges';
 import { getProgress, getTotalStars, getPuzzlesSolved } from '../lib/storage';
 import { getAllLevels } from '../data/worlds';
 import { sound } from '../lib/sound';
+import confetti from 'canvas-confetti';
 
 // ─── Confetti particle ────────────────────────────────────────
 function Confetti({ count = 28 }: { count?: number }) {
@@ -45,7 +46,22 @@ export function VictoryScreen() {
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    if (victoryData?.stars === 3) setShowConfetti(true);
+    if (victoryData) {
+      if (victoryData.stars === 3) {
+        setShowConfetti(true);
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      } else {
+        confetti({
+          particleCount: 60,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+      }
+    }
   }, []);
 
   if (!victoryData) { navigate('world-map'); return null; }
@@ -207,6 +223,14 @@ export function VictoryScreen() {
 export function RewardsScreen() {
   const { navigate, currentChild } = useApp();
   const [selectedBadge, setSelectedBadge] = useState<string | null>(null);
+
+  useEffect(() => {
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.6 }
+    });
+  }, []);
 
   if (!currentChild) return null;
   const progress = getProgress(currentChild.id);
