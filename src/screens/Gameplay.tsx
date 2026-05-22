@@ -201,6 +201,7 @@ export default function Gameplay() {
   const theme = THEME_PALETTES[currentChild?.themeColor || 'purple'] || THEME_PALETTES.purple;
 
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [waveHeights, setWaveHeights] = useState([25, 25, 25, 25, 25]);
   const [autoSpeak, setAutoSpeak] = useState(() => {
     return localStorage.getItem('brain_bugs_auto_speak') === 'true';
   });
@@ -208,6 +209,23 @@ export default function Gameplay() {
   const [nightMode, setNightMode] = useState(() => {
     return localStorage.getItem('brain_bugs_night_mode') === 'true';
   });
+
+  useEffect(() => {
+    if (!isSpeaking) {
+      setWaveHeights([25, 25, 25, 25, 25]);
+      return;
+    }
+    const interval = setInterval(() => {
+      setWaveHeights([
+        Math.floor(Math.random() * 60) + 40,
+        Math.floor(Math.random() * 70) + 30,
+        Math.floor(Math.random() * 80) + 20,
+        Math.floor(Math.random() * 50) + 50,
+        Math.floor(Math.random() * 60) + 40,
+      ]);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [isSpeaking]);
 
   const toggleNightMode = useCallback(() => {
     sound.playClick();
@@ -980,9 +998,18 @@ export default function Gameplay() {
               </div>
               {isSpeaking && (
                 <div className="flex items-end gap-0.5 h-3 px-1">
-                  <div className="w-0.5 bg-[#FF8A4C] rounded-full animate-wave-bar-1 animate-pulse" style={{ height: '100%', minHeight: '4px' }} />
-                  <div className="w-0.5 bg-[#FF8A4C] rounded-full animate-wave-bar-2 animate-pulse" style={{ height: '60%', minHeight: '4px' }} />
-                  <div className="w-0.5 bg-[#FF8A4C] rounded-full animate-wave-bar-3 animate-pulse" style={{ height: '80%', minHeight: '4px' }} />
+                  {waveHeights.map((h, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="w-0.5 rounded-full"
+                      style={{ 
+                        background: nightMode ? '#C0A0FF' : '#FF8A4C',
+                        minHeight: '4px'
+                      }}
+                      animate={{ height: `${h}%` }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                    />
+                  ))}
                 </div>
               )}
             </div>

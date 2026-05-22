@@ -420,8 +420,19 @@ export function ParentDashboard() {
 
   const handleTriggerPrint = () => {
     sound.playClick();
+    document.body.classList.add('print-puzzle-active');
     setTimeout(() => {
       window.print();
+      document.body.classList.remove('print-puzzle-active');
+    }, 100);
+  };
+
+  const handleTriggerReportPrint = () => {
+    sound.playClick();
+    document.body.classList.add('print-report-active');
+    setTimeout(() => {
+      window.print();
+      document.body.classList.remove('print-report-active');
     }, 100);
   };
   const child = children.find(c=>c.id===viewId) ?? currentChild;
@@ -1017,22 +1028,37 @@ export function ParentDashboard() {
               </ul>
             </div>
 
-            {/* Email Report Button */}
-            <div className="mt-2 border-t pt-3.5" style={{ borderColor: isDarkMode ? '#3E1B6B' : '#E9D5FF' }}>
-              <button
-                onClick={handleSendEmailReport}
-                disabled={sendingEmail || !parent?.email}
-                className="w-full py-3 rounded-2xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-2"
-                style={{
-                  fontFamily: '"Fredoka",system-ui',
-                  background: isDarkMode ? '#3A1C6A' : '#F5F3FF',
-                  color: isDarkMode ? '#E9D5FF' : '#8E6BFF',
-                  border: isDarkMode ? '1px solid #5C32A5' : '1px solid #E9D5FF',
-                }}
-              >
-                {sendingEmail ? 'Enviando reporte...' : '📨 Enviar reporte a mi correo'}
-              </button>
-              
+            {/* Email & PDF Report Buttons */}
+            <div className="mt-2 border-t pt-3.5 flex flex-col gap-2" style={{ borderColor: isDarkMode ? '#3E1B6B' : '#E9D5FF' }}>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={handleSendEmailReport}
+                  disabled={sendingEmail || !parent?.email}
+                  className="py-3 rounded-2xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                  style={{
+                    fontFamily: '"Fredoka",system-ui',
+                    background: isDarkMode ? '#3A1C6A' : '#F5F3FF',
+                    color: isDarkMode ? '#E9D5FF' : '#8E6BFF',
+                    border: isDarkMode ? '1px solid #5C32A5' : '1px solid #E9D5FF',
+                  }}
+                >
+                  {sendingEmail ? 'Enviando...' : '📨 Enviar Correo'}
+                </button>
+                
+                <button
+                  onClick={handleTriggerReportPrint}
+                  className="py-3 rounded-2xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                  style={{
+                    fontFamily: '"Fredoka",system-ui',
+                    background: 'linear-gradient(90deg, #8E6BFF, #5A3BD1)',
+                    color: '#ffffff',
+                    boxShadow: isDarkMode ? '0 3px 0 #3E1B6B' : '0 3px 0 #5A3BD1',
+                  }}
+                >
+                  🖨️ Descargar PDF
+                </button>
+              </div>
+
               {emailStatus && (
                 <div 
                   className={`mt-2 p-3 rounded-xl text-center text-xs font-semibold border ${
@@ -1438,6 +1464,103 @@ export function ParentDashboard() {
         </div>
         
         <div className="text-center mt-12 border-t pt-4 text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+          © BRAIN BUGS Co. · Diseñado para estimular el Razonamiento y Desarrollo Cognitivo de forma divertida y offline
+        </div>
+      </div>
+
+      {/* Hidden Printable AI Coach Report */}
+      <div id="printable-coach-report" className="hidden print:block p-8 font-sans text-black bg-white" style={{ background: 'white', color: 'black' }}>
+        <div className="text-center border-b-2 border-black pb-4 mb-6">
+          <h1 className="text-3xl font-extrabold tracking-wider" style={{ fontFamily: '"Segoe UI", sans-serif' }}>🤖 BRAIN BUGS: Reporte de Inteligencia y Desarrollo</h1>
+          <p className="text-sm font-semibold text-gray-600 mt-1">Análisis de Heurística de Juego & Plan Pedagógico Semanal</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6 text-sm border-b pb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', borderBottom: '1px solid #000', paddingBottom: '16px', marginBottom: '24px' }}>
+          <div>
+            <p><strong>Padre/Tutor:</strong> {parent?.displayName || 'Padre/Madre'} ({parent?.email || 'N/A'})</p>
+            <p><strong>Perfil del Niño:</strong> {child?.nickname}</p>
+          </div>
+          <div className="text-right" style={{ textAlign: 'right' }}>
+            <p><strong>Fecha de Emisión:</strong> {new Date().toLocaleDateString('es-ES')}</p>
+            <p><strong>Desarrollo Cognitivo:</strong> Razonamiento Espacial y Resiliencia</p>
+          </div>
+        </div>
+
+        {/* Stats Table */}
+        <div className="mb-6" style={{ marginBottom: '24px' }}>
+          <h3 className="text-base font-bold text-gray-800 mb-2 border-b pb-1" style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: '4px', marginBottom: '8px' }}>📊 Estadísticas Acumuladas</h3>
+          <table className="w-full text-left text-xs border border-collapse" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#F3F4F6' }}>
+                <th className="p-2 border" style={{ padding: '8px', border: '1px solid #D1D5DB' }}>Métrica</th>
+                <th className="p-2 border text-right" style={{ padding: '8px', border: '1px solid #D1D5DB', textAlign: 'right' }}>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="p-2 border" style={{ padding: '8px', border: '1px solid #D1D5DB' }}>Rompecabezas Completados</td>
+                <td className="p-2 border text-right" style={{ padding: '8px', border: '1px solid #D1D5DB', textAlign: 'right' }}>{puzzlesSolved}</td>
+              </tr>
+              <tr>
+                <td className="p-2 border" style={{ padding: '8px', border: '1px solid #D1D5DB' }}>Estrellas Ganadas</td>
+                <td className="p-2 border text-right" style={{ padding: '8px', border: '1px solid #D1D5DB', textAlign: 'right' }}>{totalStars} ⭐</td>
+              </tr>
+              <tr>
+                <td className="p-2 border" style={{ padding: '8px', border: '1px solid #D1D5DB' }}>Pistas Solicitadas</td>
+                <td className="p-2 border text-right" style={{ padding: '8px', border: '1px solid #D1D5DB', textAlign: 'right' }}>{totalHints}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Cognitive Heuristics Analysis */}
+        <div className="mb-6" style={{ marginBottom: '24px' }}>
+          <h3 className="text-base font-bold text-gray-800 mb-2 border-b pb-1" style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: '4px', marginBottom: '8px' }}>📐 Análisis Heurístico Cognitivo</h3>
+          
+          <div className="space-y-4" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <p className="text-xs font-bold text-gray-700" style={{ fontWeight: 'bold', color: '#374151' }}>1. Orientación Espacial y Lógica:</p>
+              <p className="text-xs text-gray-600 mt-0.5 leading-relaxed" style={{ color: '#4B5563', lineHeight: '1.6' }}>
+                {puzzlesSolved === 0 
+                  ? 'Aún no hay datos de juego suficientes. Resuelve niveles para evaluar.'
+                  : puzzlesSolved >= 10 
+                  ? 'Desarrollo Avanzado: Demuestra una habilidad excepcional para predecir la orientación espacial y rotar bichos sin ensayar físicamente demasiadas veces.'
+                  : 'Fase de Exploración: Está asimilando las restricciones de forma tridimensional. Muestra paciencia al ensayar giros en las esquinas.'}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-gray-700" style={{ fontWeight: 'bold', color: '#374151' }}>2. Resiliencia Cognitiva (Tolerancia al Error):</p>
+              <p className="text-xs text-gray-600 mt-0.5 leading-relaxed" style={{ color: '#4B5563', lineHeight: '1.6' }}>
+                {puzzlesSolved === 0 
+                  ? 'Completar niveles revelará los hábitos de superación ante obstáculos.'
+                  : totalHints === 0 
+                  ? 'Autonomía Sobresaliente: Resuelve todos los retos de forma independiente sin apoyarse en pistas, lo que demuestra alta confianza ante problemas difíciles.'
+                  : totalHints > puzzlesSolved * 1.5 
+                  ? 'Búsqueda Estratégica: Utiliza las pistas como herramienta proactiva de aprendizaje para superar frustraciones, un gran rasgo de adaptabilidad.'
+                  : 'Equilibrio Saludable: Intenta resolver de forma autónoma primero y acude a pistas cortas solo en bloqueo complejo.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Off-screen recommendation list */}
+        <div className="mb-6 bg-gray-50 border border-gray-200 p-4 rounded-xl" style={{ backgroundColor: '#F9FAFB', border: '1px solid #E5E7EB', padding: '16px', borderRadius: '12px' }}>
+          <h3 className="text-sm font-bold text-gray-800 mb-2" style={{ fontWeight: 'bold', color: '#1F2937', marginBottom: '8px' }}>🎲 Plan de Actividad Fuera de Pantalla (Semanal)</h3>
+          <ul className="list-disc pl-5 text-xs text-gray-600 space-y-2" style={{ listStyleType: 'disc', paddingLeft: '20px' }}>
+            <li style={{ marginBottom: '8px' }}>
+              <strong>Tangrams o Bloques Físicos:</strong> Jugar a replicar siluetas del Tangram para trasladar la manipulación digital a una experiencia de tacto real tridimensional.
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              <strong>Preguntas de Metacognición:</strong> Cuando jueguen juntos, hazle la pregunta: <em>"¿Cómo decidiste que Rose cabía exactamente en esa esquina?"</em> Esto estimula la verbalización lógica.
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              <strong>Rompecabezas de Encaje:</strong> Fortalecer el razonamiento espacial con juegos clásicos de apilar o laberintos físicos de bolitas.
+            </li>
+          </ul>
+        </div>
+
+        <div className="text-center mt-12 border-t pt-4 text-[10px] text-gray-400 font-semibold uppercase tracking-wider" style={{ textAlign: 'center', borderTop: '1px solid #E5E7EB', paddingTop: '16px', marginTop: '48px', fontSize: '10px', color: '#9CA3AF' }}>
           © BRAIN BUGS Co. · Diseñado para estimular el Razonamiento y Desarrollo Cognitivo de forma divertida y offline
         </div>
       </div>

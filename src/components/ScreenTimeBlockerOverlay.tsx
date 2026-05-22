@@ -11,6 +11,23 @@ export default function ScreenTimeBlockerOverlay() {
   const [verificationError, setVerificationError] = useState('');
   const [verificationMode, setVerificationMode] = useState<'options' | 'math'>('options'); // 'options' shows after correct math, or 'math' shows verification
 
+  const [stretchActive, setStretchActive] = useState(false);
+  const [stretchSeconds, setStretchSeconds] = useState(10);
+  const [stretchFinished, setStretchFinished] = useState(false);
+
+  React.useEffect(() => {
+    if (!stretchActive || stretchSeconds <= 0) {
+      if (stretchActive && stretchSeconds === 0) {
+        setStretchFinished(true);
+      }
+      return;
+    }
+    const timer = setTimeout(() => {
+      setStretchSeconds(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [stretchActive, stretchSeconds]);
+
   if (!currentChild) return null;
 
   const generateMathProblem = () => {
@@ -121,6 +138,53 @@ export default function ScreenTimeBlockerOverlay() {
           <br /><br />
           🌳 ¡Aprovecha para estirar tus alas, jugar al aire libre y descansar tus ojos!
         </p>
+
+        {/* Micro-pausa Activa Kid Stretching Exercise */}
+        {!stretchActive ? (
+          <button
+            onClick={() => {
+              sound.playClick();
+              setStretchActive(true);
+              setStretchSeconds(10);
+              setStretchFinished(false);
+            }}
+            className="w-full mb-4 py-3 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-emerald-400 to-[#3FD09E] active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            style={{ fontFamily: '"Fredoka",system-ui', boxShadow: '0 4px 0 #1F9A6E' }}
+          >
+            🦋 Hacer Estiramiento Activo
+          </button>
+        ) : (
+          <div className="mb-6 p-4 rounded-2xl border bg-[#1E0F33]/90 border-emerald-500/30 flex flex-col items-center">
+            <h4 className="text-sm font-bold text-emerald-400 mb-1" style={{ fontFamily: '"Fredoka",system-ui' }}>
+              {stretchFinished ? '¡Excelente estiramiento! 🎉' : '¡Estira tus brazos hacia arriba! 🧘'}
+            </h4>
+            
+            {!stretchFinished ? (
+              <>
+                <p className="text-[11px] text-purple-200 mb-3" style={{ fontFamily: '"Nunito",system-ui' }}>
+                  Inhala profundo y estira tus brazos hacia el cielo como Rose...
+                </p>
+                <motion.div 
+                  animate={{ scale: [1, 1.4, 1] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="w-16 h-16 rounded-full bg-emerald-400/20 border-2 border-emerald-400 flex items-center justify-center text-2xl mb-3 shadow-lg select-none"
+                >
+                  🌬️
+                </motion.div>
+                <div className="text-xl font-bold text-amber-400" style={{ fontFamily: '"Fredoka",system-ui' }}>
+                  {stretchSeconds}s
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-emerald-200 leading-snug font-semibold mt-1" style={{ fontFamily: '"Nunito",system-ui' }}>
+                  ¡Tus ojos y tu cuerpo te lo agradecen! Ahora descansa tus alitas un momento.
+                </p>
+                <span className="text-4xl mt-3 select-none">✨🦋✨</span>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Parent Escape Hatch Button */}
         <button

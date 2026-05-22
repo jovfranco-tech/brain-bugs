@@ -22,10 +22,28 @@
   body * {
     visibility: hidden !important;
   }
-  #printable-puzzle-area, #printable-puzzle-area * {
+  
+  /* Printable Puzzle */
+  body.print-puzzle-active #printable-puzzle-area,
+  body.print-puzzle-active #printable-puzzle-area * {
     visibility: visible !important;
   }
-  #printable-puzzle-area {
+  body.print-puzzle-active #printable-puzzle-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  /* Printable AI Coach Report */
+  body.print-report-active #printable-coach-report,
+  body.print-report-active #printable-coach-report * {
+    visibility: visible !important;
+  }
+  body.print-report-active #printable-coach-report {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
