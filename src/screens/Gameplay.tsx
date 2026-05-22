@@ -559,6 +559,7 @@ export default function Gameplay() {
   // ── Controls ──────────────────────────────────────────────────
   const rotatePiece = useCallback(() => {
     if (!selected) return;
+    sound.playRotate();
     setRotations(r => ({ ...r, [selected]: (((r[selected] ?? 0) + 1) % 4) as 0|1|2|3 }));
     setFailCount(0);
     setCoachMsg("¡Rotado! Ahora intenta colocarlo en el tablero.");

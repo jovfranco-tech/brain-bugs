@@ -10,6 +10,7 @@ import { sound } from '../lib/sound';
 import confetti from 'canvas-confetti';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── Confetti particle ────────────────────────────────────────
 function Confetti({ count = 28 }: { count?: number }) {
@@ -127,7 +128,7 @@ export function VictoryScreen() {
       <div className="relative z-10 flex flex-col items-center w-full px-5 pt-16 pb-8 overflow-y-auto no-scrollbar">
         {/* Headline */}
         <div className="text-white font-bold text-2xl text-center mb-0.5"
-          style={{fontFamily:'"Fredoka",system-ui', textShadow:'0 2px 0 rgba(0,0,0,0.25)'}}>
+          style={{fontFamily:'"Fredoka",system-ui', textShadow:'0 4px 12px rgba(35,19,71,0.25)'}}>
           {headline}
         </div>
         <div className="text-yellow-200/80 text-sm font-semibold mb-6" style={{fontFamily:'"Nunito",system-ui'}}>
@@ -221,8 +222,15 @@ export function VictoryScreen() {
             SIGUIENTE NIVEL →
           </button>
           <button onClick={() => navigate('world-map')}
-            className="w-full py-3 rounded-2xl font-bold active:scale-95 text-sm"
-            style={{background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.75)', fontFamily:'"Fredoka",system-ui'}}>
+            className="w-full py-3 rounded-2xl font-bold active:scale-95 text-sm transition-all"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))',
+              color: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(5px)',
+              fontFamily: '"Fredoka",system-ui'
+            }}>
             Volver al mapa
           </button>
         </div>
@@ -260,13 +268,22 @@ export function RewardsScreen() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-14 pb-3 flex-shrink-0">
         <button onClick={()=>navigate('home')}
-          className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{background:'rgba(255,255,255,0.12)'}}>
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
+            backdropFilter: 'blur(4px)'
+          }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M15 6l-6 6 6 6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </button>
-        <div className="font-bold text-white text-lg uppercase tracking-widest" style={{fontFamily:'"Fredoka",system-ui'}}>
+        <div className="font-bold text-white text-lg uppercase tracking-widest" 
+          style={{
+            fontFamily:'"Fredoka",system-ui',
+            textShadow: '0 2px 8px rgba(35,19,71,0.2)'
+          }}>
           Medallas y Recompensas
         </div>
         <div className="w-10"/>
@@ -365,6 +382,37 @@ export function RewardsScreen() {
   );
 }
 
+const TUTORIAL_SLIDES = [
+  {
+    title: "🧩 ¿Qué es el AI Coach?",
+    desc: "Un asistente inteligente que analiza en tiempo real cómo juega tu hijo. Evalúa su heurística de resolución y diseña dinámicas fuera de pantalla personalizadas.",
+    icon: "🧠",
+    badge: "GENERAL",
+    color: "from-indigo-500 to-purple-600"
+  },
+  {
+    title: "📐 Lógica y Orientación",
+    desc: "Mide cómo percibe las formas tridimensionales. Un niño que rota piezas con calma demuestra habilidades de planificación geométrica y lógica predictiva avanzada.",
+    icon: "📐",
+    badge: "COGNICIÓN",
+    color: "from-pink-500 to-purple-600"
+  },
+  {
+    title: "💪 Resiliencia y Tolerancia",
+    desc: "Analiza la persistencia ante la frustración. El equilibrio entre el esfuerzo independiente y la solicitud inteligente de pistas muestra madurez emocional.",
+    icon: "💪",
+    badge: "HABILIDADES",
+    color: "from-blue-500 to-indigo-600"
+  },
+  {
+    title: "🎲 Aprendizaje del Mundo Real",
+    desc: "¡El juego físico refuerza el digital! Te recomendamos actividades semanales (como Tangrams o preguntas lógicas) para conectar la pantalla con el tacto.",
+    icon: "🌍",
+    badge: "CONSEJO",
+    color: "from-emerald-500 to-teal-600"
+  }
+];
+
 // ─── Parent Dashboard ─────────────────────────────────────────
 export function ParentDashboard() {
   const { navigate, parent, children, currentChild, resetChildProgress, signOut, updateChildTimeLimit } = useApp();
@@ -388,6 +436,12 @@ export function ParentDashboard() {
 
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  useEffect(() => {
+    sound.playStoreOpen();
+  }, []);
 
   useEffect(() => {
     const parentId = parent?.id || 'guest';
@@ -578,29 +632,60 @@ export function ParentDashboard() {
       {/* Header */}
       <div className="px-4 pt-14 pb-3 flex items-center justify-between transition-colors duration-300"
         style={{
-          background: isDarkMode ? '#140824' : '#white',
+          background: isDarkMode ? '#140824' : 'white',
           boxShadow: isDarkMode ? '0 2px 12px rgba(0,0,0,0.4)' : '0 2px 12px rgba(35,19,71,0.06)',
           borderBottom: isDarkMode ? '1px solid #23123D' : 'none'
         }}>
         <button onClick={()=>navigate('home')}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
-          style={{ background: isDarkMode ? '#24133D' : '#F4F2FA' }}>
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
+          style={{
+            background: isDarkMode 
+              ? 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))' 
+              : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5))',
+            border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(142,107,255,0.15)',
+            boxShadow: isDarkMode 
+              ? '0 4px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)' 
+              : '0 4px 10px rgba(142,107,255,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(4px)'
+          }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M15 6l-6 6 6 6" stroke={isDarkMode ? '#fff' : '#231347'} strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </button>
-        <div style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}} className="font-bold text-base uppercase tracking-widest">
+        <div style={{
+          fontFamily:'"Fredoka",system-ui', 
+          color: isDarkMode ? '#fff' : '#231347',
+          textShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 8px rgba(35,19,71,0.1)'
+        }} className="font-bold text-base uppercase tracking-widest">
           Panel de Padres
         </div>
         <div className="flex gap-2">
           {/* Dark mode button */}
-          <button onClick={toggleDarkMode} className="w-10 h-10 rounded-full flex items-center justify-center text-lg transition-transform active:scale-95"
-            style={{ background: isDarkMode ? '#24133D' : '#F4F2FA' }}>
+          <button onClick={toggleDarkMode} className="w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all active:scale-95"
+            style={{
+              background: isDarkMode 
+                ? 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))' 
+                : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5))',
+              border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(142,107,255,0.15)',
+              boxShadow: isDarkMode 
+                ? '0 4px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)' 
+                : '0 4px 10px rgba(142,107,255,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(4px)'
+            }}>
             {isDarkMode ? '🌙' : '☀️'}
           </button>
           <button onClick={()=>navigate('settings')}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
-            style={{ background: isDarkMode ? '#24133D' : '#F4F2FA' }}>
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
+            style={{
+              background: isDarkMode 
+                ? 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))' 
+                : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5))',
+              border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(142,107,255,0.15)',
+              boxShadow: isDarkMode 
+                ? '0 4px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)' 
+                : '0 4px 10px rgba(142,107,255,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(4px)'
+            }}>
             ⚙️
           </button>
         </div>
@@ -958,6 +1043,96 @@ export function ParentDashboard() {
           </div>
         </div>
 
+        {/* Tutorial Carousel */}
+        <p className="text-xs font-bold uppercase tracking-wide mt-5 mb-2" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#A78BFA' : 'rgba(35,19,71,0.4)'}}>📚 Guía de Interpretación del AI Coach</p>
+        <div className="rounded-3xl p-5 relative overflow-hidden transition-colors flex flex-col gap-4"
+          style={{
+            background: isDarkMode ? '#1E0F33' : 'white',
+            border: isDarkMode ? '1px solid #3E1B6B' : '1px solid #F3E8FF',
+            boxShadow: isDarkMode ? '0 8px 30px rgba(0,0,0,0.3), 0 3px 0 rgba(0,0,0,0.4)' : '0 8px 30px rgba(142,107,255,0.06), 0 3px 0 rgba(35,19,71,0.07)',
+          }}>
+          
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tutorialStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-start gap-4 min-h-[100px]"
+            >
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${TUTORIAL_SLIDES[tutorialStep].color} flex items-center justify-center text-3xl text-white shadow-lg flex-shrink-0`}>
+                {TUTORIAL_SLIDES[tutorialStep].icon}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300">
+                    {TUTORIAL_SLIDES[tutorialStep].badge}
+                  </span>
+                  <span className="text-[10px] font-bold text-ink/40">Diapositiva {tutorialStep + 1} de 4</span>
+                </div>
+                <h4 className="font-bold text-sm mb-1" style={{fontFamily:'"Fredoka",system-ui', color: isDarkMode ? '#fff' : '#231347'}}>
+                  {TUTORIAL_SLIDES[tutorialStep].title}
+                </h4>
+                <p className="text-xs leading-relaxed" style={{fontFamily:'"Nunito",system-ui', color: isDarkMode ? '#C0A0FF' : 'rgba(35,19,71,0.65)'}}>
+                  {TUTORIAL_SLIDES[tutorialStep].desc}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="flex items-center justify-between border-t pt-3" style={{ borderColor: isDarkMode ? '#2D1452' : '#F4F2FA' }}>
+            {/* Dots */}
+            <div className="flex gap-1.5">
+              {[0, 1, 2, 3].map((idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { sound.playClick(); setTutorialStep(idx); }}
+                  className={`h-2 rounded-full transition-all duration-300 ${tutorialStep === idx ? 'w-5 bg-purple-500' : 'w-2 bg-purple-200 dark:bg-purple-950/40'}`}
+                  aria-label={`Ir al paso ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Nav Buttons */}
+            <div className="flex gap-2">
+              <button
+                disabled={tutorialStep === 0}
+                onClick={() => {
+                  sound.playClick();
+                  setTutorialStep(s => Math.max(0, s - 1));
+                }}
+                className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all flex items-center justify-center border ${
+                  tutorialStep === 0 
+                    ? 'opacity-40 cursor-not-allowed border-transparent text-ink/30' 
+                    : 'active:scale-95 text-purple-600 dark:text-purple-300 border-purple-200 dark:border-purple-900/50 hover:bg-purple-50 dark:hover:bg-purple-950/20'
+                }`}
+                style={{ fontFamily: '"Fredoka",system-ui' }}
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  if (tutorialStep < 3) {
+                    setTutorialStep(s => s + 1);
+                  } else {
+                    setTutorialStep(0); // Loop back
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl font-bold text-[11px] text-white transition-all active:scale-95 flex items-center justify-center"
+                style={{
+                  fontFamily: '"Fredoka",system-ui',
+                  background: 'linear-gradient(135deg, #8E6BFF, #6D44FF)',
+                  boxShadow: '0 2px 0 #4C26C9'
+                }}
+              >
+                {tutorialStep === 3 ? 'Comenzar' : 'Siguiente'}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Recent activity */}
         {progress && Object.keys(progress.levelProgress).length > 0 && (
           <>
@@ -1160,12 +1335,21 @@ export function SettingsScreen() {
       <div className="bg-white px-4 pt-14 pb-3 flex items-center justify-between"
         style={{boxShadow:'0 2px 12px rgba(35,19,71,0.06)'}}>
         <button onClick={()=>navigate('parent-dashboard')}
-          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5))',
+            border: '1px solid rgba(142,107,255,0.15)',
+            boxShadow: '0 4px 10px rgba(142,107,255,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(4px)'
+          }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M15 6l-6 6 6 6" stroke="#231347" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </button>
-        <div style={{fontFamily:'"Fredoka",system-ui'}} className="font-bold text-ink text-base uppercase tracking-widest">Ajustes</div>
+        <div style={{
+          fontFamily:'"Fredoka",system-ui',
+          textShadow: '0 2px 8px rgba(35,19,71,0.1)'
+        }} className="font-bold text-ink text-base uppercase tracking-widest">Ajustes</div>
         <div className="w-10"/>
       </div>
 

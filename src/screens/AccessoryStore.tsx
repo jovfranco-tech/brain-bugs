@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../contexts/AppContext';
 import BugSvg from '../components/BugSvg';
@@ -24,6 +24,10 @@ const ACCESSORIES: AccessoryItem[] = [
 export default function AccessoryStore() {
   const { currentChild, navigate, unlockAccessory, equipAccessory } = useApp();
   const [selectedId, setSelectedId] = useState<string>('mustache');
+
+  useEffect(() => {
+    sound.playStoreOpen();
+  }, []);
 
   if (!currentChild) return null;
 
