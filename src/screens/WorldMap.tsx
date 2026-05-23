@@ -150,6 +150,81 @@ export default function WorldMap() {
   const { currentChild, navigate } = useApp();
   if (!currentChild) return null;
 
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const particles = Array.from({ length: 15 }, (_, i) => ({
+      x: Math.random() * width,
+      y: Math.random() * height + height,
+      size: 8 + (i % 3) * 4,
+      speedY: 0.4 + Math.random() * 0.6,
+      amplitude: 10 + Math.random() * 20,
+      frequency: 0.002 + Math.random() * 0.003,
+      phase: Math.random() * Math.PI * 2,
+      opacity: 0.1 + Math.random() * 0.6,
+      fadeSpeed: 0.002 + Math.random() * 0.003,
+      fadingIn: true,
+    }));
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      particles.forEach(p => {
+        p.y -= p.speedY;
+        const currentX = p.x + Math.sin(p.y * p.frequency + p.phase) * p.amplitude;
+
+        if (p.fadingIn) {
+          p.opacity += p.fadeSpeed;
+          if (p.opacity >= 0.75) p.fadingIn = false;
+        } else {
+          p.opacity -= p.fadeSpeed;
+          if (p.opacity <= 0.15) p.fadingIn = true;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0.05, Math.min(1, p.opacity));
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+        ctx.shadowBlur = 6;
+        ctx.fillText('✨', currentX, p.y);
+        ctx.restore();
+
+        if (p.y < -20) {
+          p.y = height + 20;
+          p.x = Math.random() * width;
+          p.opacity = 0.1;
+          p.fadingIn = true;
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const progress = getProgress(currentChild.id);
   const totalStars = getTotalStars(progress);
 
@@ -167,38 +242,8 @@ export default function WorldMap() {
     <div className="flex flex-col h-full"
       style={{ background:'linear-gradient(180deg,#7CC7FF 0%,#5BB0FF 40%,#4D9CE5 100%)' }}>
 
-      {/* Subtle Glowing Stardust Particles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(15)].map((_, i) => {
-          const x = (i * 37) % 100;
-          const delay = i * 0.4;
-          const scale = 0.4 + (i % 3) * 0.3;
-          return (
-            <motion.div
-              key={`star-particle-${i}`}
-              initial={{ opacity: 0.1, y: '110vh' }}
-              animate={{
-                opacity: [0.1, 0.7, 0.1],
-                y: '-10vh',
-                x: [`${x}vw`, `${x + (i % 2 === 0 ? 5 : -5)}vw`]
-              }}
-              transition={{
-                duration: 15 + (i % 5) * 4,
-                repeat: Infinity,
-                delay: -delay,
-                ease: 'linear'
-              }}
-              className="absolute text-yellow-100 font-bold"
-              style={{
-                fontSize: `${scale * 12}px`,
-                filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.8))'
-              }}
-            >
-              ✨
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* Subtle Glowing Stardust Particles (Canvas Optimized) */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
 
       {/* Animated Clouds */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

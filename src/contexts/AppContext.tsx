@@ -12,6 +12,7 @@ import { WORLDS, getAllLevels } from '../data/worlds';
 import { checkNewBadges } from '../data/badges';
 import { auth, db, isFirebaseEnabled } from '../lib/firebase';
 import { sound } from '../lib/sound';
+import { TRANSLATIONS } from '../data/translations';
 
 import {
   signInWithEmailAndPassword,
@@ -148,6 +149,10 @@ interface AppContextValue {
   screenTimeRemaining: number | null;
   isScreenTimeLocked: boolean;
   updateChildTimeLimit: (childId: string, limitMinutes: number) => void;
+  // i18n
+  language: 'es' | 'en';
+  setLanguage: (lang: 'es' | 'en') => void;
+  t: (key: string) => string;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -167,6 +172,23 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
   const [victoryData, setVD]            = useState<VictoryData | null>(null);
   const [screenTimeRemaining, setScreenTimeRemaining] = useState<number | null>(null);
   const [isScreenTimeLocked, setIsScreenTimeLocked] = useState(false);
+
+  const [language, setLangState] = useState<'es' | 'en'>(() => {
+    const saved = localStorage.getItem('bb_language');
+    if (saved === 'en' || saved === 'es') return saved;
+    const sysLang = navigator.language || '';
+    return sysLang.startsWith('en') ? 'en' : 'es';
+  });
+
+  const setLanguage = useCallback((lang: 'es' | 'en') => {
+    localStorage.setItem('bb_language', lang);
+    setLangState(lang);
+  }, []);
+
+  const t = useCallback((key: string): string => {
+    const dict = TRANSLATIONS[language] || TRANSLATIONS.es;
+    return (dict as any)[key] || key;
+  }, [language]);
 
   // Screen time countdown timer
   useEffect(() => {
@@ -660,7 +682,8 @@ export function AppProvider({ children: childNodes }: { children: React.ReactNod
     getChildProgress, completeLevel, setCurrentLevel,
     victoryData, setVictoryData: setVD,
     unlockAccessory, equipAccessory,
-    screenTimeRemaining, isScreenTimeLocked, updateChildTimeLimit
+    screenTimeRemaining, isScreenTimeLocked, updateChildTimeLimit,
+    language, setLanguage, t
   };
 
   return <AppContext.Provider value={value}>{childNodes}</AppContext.Provider>;

@@ -115,6 +115,8 @@ function coachHint(
   moves: number,
   hintsUsed: number,
   failCount: number,
+  t: (key: string) => string,
+  language: 'es' | 'en'
 ): string {
   const total   = puzzle.pieces.length;
   const placed  = total - available.length;
@@ -122,41 +124,46 @@ function coachHint(
 
   // Solved
   if (available.length === 0 && placements.length === total)
-    return "¡Todos los bichos colocados! ¡Presiona Comprobar para terminar! 🎉";
+    return t('gameplayCoachStart');
 
   // Just started
-  if (moves === 0 && placed === 0)
-    return puzzle.hints[0] ?? "¡Agarra primero el bicho más grande, necesita más espacio!";
+  if (moves === 0 && placed === 0) {
+    if (language === 'en') return t('gameplayCoachEarly');
+    return puzzle.hints[0] ?? t('gameplayCoachEarly');
+  }
 
   // Repeated failures — be more specific
   if (failCount >= 3)
-    return "Ese lugar parece atascado. ¡Intenta en un área diferente del tablero! 🔄";
+    return t('gameplayCoachFail3');
   if (failCount === 2)
-    return "¡Casi! Rota la pieza — a veces un giro de 90° hace toda la diferencia.";
+    return t('gameplayCoachFail2');
   if (failCount === 1)
-    return "¡Uy! Esa celda está bloqueada u ocupada. Intenta cerca o rota la pieza primero.";
+    return t('gameplayCoachFail1');
 
   // Too many hints
   if (hintsUsed >= 3)
-    return "Tómate tu tiempo. Mira el espacio vacío e imagina qué bicho cabe ahí.";
+    return t('gameplayCoachHintLimit');
 
   // Near completion
   if (available.length === 1)
-    return "¡Solo queda un bicho! ¡Busca el hueco exacto que llena! Ya casi lo tienes 💪";
+    return t('gameplayCoachRemaining1');
   if (frac >= 0.7)
-    return "¡Gran progreso! Observa el espacio que queda y busca el bicho adecuado.";
+    return t('gameplayCoachNearEnd');
 
   // Mid-puzzle hints
-  if (frac >= 0.4 && frac < 0.7)
-    return puzzle.hints[Math.min(1, puzzle.hints.length-1)] ?? "¡Piensa en las esquinas, son las que más limitan las opciones!";
+  if (frac >= 0.4 && frac < 0.7) {
+    if (language === 'en') return t('gameplayCoachMid');
+    return puzzle.hints[Math.min(1, puzzle.hints.length-1)] ?? t('gameplayCoachMid');
+  }
 
   // Early moves
   if (moves > 0 && moves < 4)
-    return "¡Buen comienzo! Busca el siguiente bicho más grande para colocar.";
+    return t('gameplayCoachEarly');
 
   // General hints from puzzle data
+  if (language === 'en') return t('gameplayCoachGeneral');
   const hintIdx = Math.min(Math.floor(hintsUsed), puzzle.hints.length - 1);
-  return puzzle.hints[hintIdx] ?? "Una pieza a la vez — ¡lo estás haciendo genial!";
+  return puzzle.hints[hintIdx] ?? t('gameplayCoachGeneral');
 }
 
 function decodeLevelCode(code: string): any {
@@ -195,7 +202,7 @@ interface AmbientParticle {
 
 // ─── Main Gameplay Screen ─────────────────────────────────────
 export default function Gameplay() {
-  const { navigate, screenParams, currentChild, completeLevel, setVictoryData } = useApp();
+  const { navigate, screenParams, currentChild, completeLevel, setVictoryData, language, t } = useApp();
   const { levelId = '', worldId = '' } = screenParams;
 
   const theme = THEME_PALETTES[currentChild?.themeColor || 'purple'] || THEME_PALETTES.purple;
@@ -246,7 +253,7 @@ export default function Gameplay() {
         return;
       }
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'es-ES';
+      utterance.lang = language === 'en' ? 'en-US' : 'es-ES';
       
       const storedPitch = localStorage.getItem('brain_bugs_tts_pitch');
       const storedRate = localStorage.getItem('brain_bugs_tts_rate');
@@ -360,10 +367,14 @@ export default function Gameplay() {
     setSolveGlow(false);
     setFailCount(0);
     
-    const nameStr = puzzle.name;
-    const diffText = puzzle.difficulty === 'easy' ? 'fácil' : puzzle.difficulty === 'medium' ? 'medio' : 'difícil';
-    setCoachMsg(`¡Bienvenido al nivel ${nameStr}! Dificultad: ${diffText}. ¡Coloca los bichos en el tablero!`);
-  }, [puzzle]);
+    const nameStr = puzzle.id.startsWith('daily-') ? t('dailyChallenge') : puzzle.id.startsWith('custom-') ? t('customLevelName') : puzzle.name;
+    const diffText = puzzle.difficulty === 'easy' 
+      ? (language === 'en' ? 'easy' : 'fácil') 
+      : puzzle.difficulty === 'medium' 
+        ? (language === 'en' ? 'medium' : 'medio') 
+        : (language === 'en' ? 'hard' : 'difícil');
+    setCoachMsg(t('gameplayWelcome').replace('{name}', nameStr).replace('{difficulty}', diffText));
+  }, [puzzle, language]);
 
   // Particle bursts state
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -448,8 +459,8 @@ export default function Gameplay() {
   // Update coach when state changes
   useEffect(() => {
     if (!puzzle || solved) return;
-    setCoachMsg(coachHint(puzzle, available, placements, moves, hintsUsed, failCount));
-  }, [moves, hintsUsed, failCount, available.length, solved]);
+    setCoachMsg(coachHint(puzzle, available, placements, moves, hintsUsed, failCount, t, language));
+  }, [moves, hintsUsed, failCount, available.length, solved, language]);
 
   // Particle spawner helper
   const spawnParticles = useCallback((startX: number, startY: number) => {
@@ -604,8 +615,8 @@ export default function Gameplay() {
     sound.playRotate();
     setRotations(r => ({ ...r, [selected]: (((r[selected] ?? 0) + 1) % 4) as 0|1|2|3 }));
     setFailCount(0);
-    setCoachMsg("¡Rotado! Ahora intenta colocarlo en el tablero.");
-  }, [selected]);
+    setCoachMsg(t('gameplayRotate'));
+  }, [selected, t]);
 
   const resetPuzzle = useCallback(() => {
     if (!puzzle) return;
@@ -618,8 +629,9 @@ export default function Gameplay() {
     setFailCount(0);
     setSolved(false);
     setSolveGlow(false);
-    setCoachMsg("¡Nuevo comienzo! " + (puzzle.hints[0] ?? "¡Tú puedes con esto!"));
-  }, [puzzle]);
+    const resetHint = language === 'en' ? t('gameplayCoachGeneral') : (puzzle.hints[0] ?? "¡Tú puedes con esto!");
+    setCoachMsg(t('gameplayRestart') + resetHint);
+  }, [puzzle, language, t]);
 
   const askHint = useCallback(() => {
     if (!puzzle) return;
@@ -642,17 +654,17 @@ export default function Gameplay() {
       });
 
       const stars = calcStars(moves, puzzle.maxMoves);
-      setCoachMsg("¡Rompecabezas resuelto! ¡Lo lograste! 🎉");
+      setCoachMsg(t('solved'));
       const badges = completeLevel(levelId, worldId as WorldId, stars, moves, hintsUsed);
       setVictoryData({ levelId, worldId: worldId as WorldId, stars, moves, hintsUsed, newBadges: badges });
       navigate('victory');
     } else if (available.length > 0) {
-      setCoachMsg(`¡Aún faltan ${available.length} bicho${available.length !== 1 ? 's' : ''} por colocar!`);
+      setCoachMsg(t('unsolvedCount').replace('{count}', String(available.length)));
     } else {
-      setCoachMsg("Algunas celdas podrían estar superpuestas — intenta reiniciar y colocar con más cuidado.");
+      setCoachMsg(t('overlayError'));
     }
 
-  }, [puzzle, board, moves, hintsUsed, available.length, levelId, worldId]);
+  }, [puzzle, board, moves, hintsUsed, available.length, levelId, worldId, t]);
 
   // ── Preview validity ──────────────────────────────────────────
   const previewData = useMemo(() => {
@@ -714,14 +726,14 @@ export default function Gameplay() {
 
   const starPreview = moves > 0 ? calcStars(moves + 1, puzzle.maxMoves) : 3;
   const levelLabel = levelId.startsWith('daily-')
-    ? 'Desafío Diario'
+    ? t('dailyChallenge')
     : levelId
-        .replace('meadow-l', 'Pradera ')
-        .replace('crystal-l', 'Cueva ')
-        .replace('robo-l',    'Arrecife ')
-        .replace('ocean-l',   'Océano ')
-        .replace('volcano-l', 'Volcán ')
-        .replace('space-l',   'Espacio ');
+        .replace('meadow-l', language === 'en' ? 'Meadow ' : 'Pradera ')
+        .replace('crystal-l', language === 'en' ? 'Cave ' : 'Cueva ')
+        .replace('robo-l',    language === 'en' ? 'Reef ' : 'Arrecife ')
+        .replace('ocean-l',   language === 'en' ? 'Ocean ' : 'Océano ')
+        .replace('volcano-l', language === 'en' ? 'Volcano ' : 'Volcán ')
+        .replace('space-l',   language === 'en' ? 'Space ' : 'Espacio ');
 
   return (
     <div
@@ -809,7 +821,7 @@ export default function Gameplay() {
               background: nightMode ? theme.glow : 'rgba(255,255,255,0.12)', 
               border: nightMode ? `1px solid ${theme.primary}` : '1px solid rgba(255,255,255,0.18)' 
             }}
-            title={nightMode ? "Activar modo día" : "Activar modo noche"}
+            title={nightMode ? t('nightModeOn') : t('nightModeOff')}
           >
             {nightMode ? '🌙' : '☀️'}
           </button>
@@ -820,22 +832,25 @@ export default function Gameplay() {
             style={{ background:'linear-gradient(180deg,#FFD55E,#FFB23A)', fontFamily:'"Fredoka",system-ui', boxShadow:'0 3px 0 #B97808' }}>
             <span>{levelLabel}</span>
             <button
-              onClick={() => speakText(`${levelLabel}. ${puzzle.name}`)}
+              onClick={() => {
+                const puzzleName = puzzle.id.startsWith('daily-') ? t('dailyChallenge') : puzzle.id.startsWith('custom-') ? t('customLevelName') : puzzle.name;
+                speakText(`${levelLabel}. ${puzzleName}`);
+              }}
               className="text-xs bg-white/20 hover:bg-white/35 active:scale-90 p-0.5 rounded-full"
-              title="Escuchar título"
+              title={language === 'en' ? 'Listen to title' : 'Escuchar título'}
             >
               🔊
             </button>
           </div>
           <div className="text-white/45 text-xs mt-1 font-semibold" style={{ fontFamily:'"Nunito",system-ui' }}>
-            {puzzle.name}
+            {puzzle.id.startsWith('daily-') ? t('dailyChallenge') : puzzle.id.startsWith('custom-') ? t('customLevelName') : puzzle.name}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-center gap-0.5">
             <span className="text-white font-bold text-lg leading-none" style={{ fontFamily:'"Fredoka",system-ui' }}>{moves}</span>
-            <span className="text-white/38 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>MOVIMIENTOS</span>
+            <span className="text-white/38 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>{t('moves')}</span>
           </div>
           <StarRating stars={starPreview} size={13}/>
         </div>
@@ -965,7 +980,7 @@ export default function Gameplay() {
 
           {available.length === 0 && !solved && (
             <p className="text-white/50 text-sm font-bold m-auto" style={{ fontFamily:'"Fredoka",system-ui' }}>
-              ¡Todos los bichos colocados! Pulsa Comprobar ✓
+              {t('cleanBoard')}
             </p>
           )}
         </div>
@@ -973,10 +988,10 @@ export default function Gameplay() {
         {/* Tray instructions */}
         <div className="flex justify-between px-1 mt-1">
           <span className="text-white/35 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>
-            Toca para seleccionar · Arrastra al tablero
+            {t('dragToSelect')}
           </span>
           <span className="text-white/35 text-xs font-bold" style={{ fontFamily:'"Nunito",system-ui' }}>
-            Restan {available.length}/{puzzle.pieces.length}
+            {t('remaining')} {available.length}/{puzzle.pieces.length}
           </span>
         </div>
       </div>
@@ -1013,7 +1028,7 @@ export default function Gameplay() {
             <div className="flex items-center gap-2">
               <div className="text-xs font-bold uppercase tracking-widest transition-colors duration-300"
                 style={{ color: nightMode ? '#C0A0FF' : '#FF8A4C', fontFamily:'"Fredoka",system-ui', fontSize:10 }}>
-                ENTRENADOR BUG
+                {t('coachTitle')}
               </div>
               {isSpeaking && (
                 <div className="flex items-end gap-0.5 h-3 px-1">
@@ -1070,21 +1085,21 @@ export default function Gameplay() {
 
       {/* ── Controls ───────────────────────────────────────── */}
       <div className="relative z-10 flex items-center justify-around px-4 pb-5 flex-shrink-0">
-        <CtrlBtn color="#FF7B5C" dark="#C73000" label="Reiniciar" onClick={resetPuzzle}
+        <CtrlBtn color="#FF7B5C" dark="#C73000" label={t('reset')} onClick={resetPuzzle}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.6-3M4 14a8 8 0 0014.6 3"
               stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color="#3FD09E" dark="#1F9A6E" label="Rotar" onClick={rotatePiece} disabled={!selected || solved}
+        <CtrlBtn color="#3FD09E" dark="#1F9A6E" label={t('rotate')} onClick={rotatePiece} disabled={!selected || solved}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M21 12a9 9 0 01-15.5 6.3M3 12a9 9 0 0115.5-6.3" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
             <path d="M19 3l2 3-3 1M5 21l-2-3 3-1" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color="#FFC83D" dark="#B97808" label="Comprobar" big onClick={checkSolution}
+        <CtrlBtn color="#FFC83D" dark="#B97808" label={t('check')} big onClick={checkSolution}
           icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M4 12l5 5L20 6" stroke="#231347" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>}/>
-        <CtrlBtn color={theme.primary} dark={theme.dark} label="Pista" onClick={askHint} disabled={solved}
+        <CtrlBtn color={theme.primary} dark={theme.dark} label={t('hint')} onClick={askHint} disabled={solved}
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c1 1 1.5 1.7 1.5 3v.5h5V16.5c0-1.3.5-2 1.5-3A6 6 0 0012 3z"
               stroke="#fff" strokeWidth="2.2" strokeLinejoin="round"/>

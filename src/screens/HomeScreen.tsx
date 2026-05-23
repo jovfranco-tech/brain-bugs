@@ -38,7 +38,7 @@ function NavPill({ icon, label, sub, color, onClick }: {
 }
 
 export default function HomeScreen() {
-  const { currentChild, navigate, children, parent } = useApp();
+  const { currentChild, navigate, children, parent, language, t } = useApp();
   if (!currentChild) return null;
 
   const theme = THEME_PALETTES[currentChild.themeColor || 'purple'] || THEME_PALETTES.purple;
@@ -183,14 +183,18 @@ export default function HomeScreen() {
           <BrainBugsLogo size={28} stacked/>
           <div className="flex items-center gap-1.5 mt-1.5">
             <p className="text-ink/55 text-sm font-medium" style={{fontFamily:'"Fredoka",system-ui', letterSpacing:0.4}}>
-              ¡Piensa · Conecta · Resuelve · Crece!
+              {t('lemaSub')}
             </p>
             <button
               onClick={() => {
                 if ('speechSynthesis' in window) {
                   window.speechSynthesis.cancel();
-                  const utterance = new SpeechSynthesisUtterance("¡Bienvenido a BRAIN BUGS! ¡Piensa, conecta, resuelve y crece!");
-                  utterance.lang = 'es-ES';
+                  const utterance = new SpeechSynthesisUtterance(t('speechLema'));
+                  utterance.lang = language === 'en' ? 'en-US' : 'es-ES';
+                  const storedPitch = localStorage.getItem('brain_bugs_tts_pitch');
+                  const storedRate = localStorage.getItem('brain_bugs_tts_rate');
+                  utterance.pitch = storedPitch ? parseFloat(storedPitch) : 1.35;
+                  utterance.rate = storedRate ? parseFloat(storedRate) : 1.0;
                   window.speechSynthesis.speak(utterance);
                 }
               }}
@@ -217,9 +221,9 @@ export default function HomeScreen() {
         {puzzlesSolved > 0 && (
           <div className="flex justify-center gap-4 mb-1 mt-2">
             {[
-              {label:'Rompecabezas', value:puzzlesSolved},
-              {label:'Estrellas', value:totalStars},
-              {label:'Medallas', value:progress.badges.length},
+              {label:t('puzzles'), value:puzzlesSolved},
+              {label:t('stars'), value:totalStars},
+              {label:t('medals'), value:progress.badges.length},
             ].map(s => (
               <div key={s.label} className="text-center">
                 <div className="font-bold text-lg" style={{fontFamily:'"Fredoka",system-ui', color: theme.dark}}>{s.value}</div>
@@ -261,13 +265,13 @@ export default function HomeScreen() {
                     fontSize: 8,
                     letterSpacing: 0.8,
                   }}>
-                  {isDailySolved ? '¡Completado!' : '¡Doble XP!'}
+                  {isDailySolved ? t('completed') : t('doubleXp')}
                 </span>
                 <h4 className="font-bold text-ink text-base mt-0.5 leading-tight" style={{ fontFamily: '"Fredoka",system-ui' }}>
-                  Desafío Diario
+                  {t('dailyChallenge')}
                 </h4>
                 <p className="text-xs text-ink/65 font-medium leading-none" style={{ fontFamily: '"Nunito",system-ui' }}>
-                  {isDailySolved ? '¡Buen trabajo! Ganaste +20 XP hoy.' : '¡Completa hoy para +20 XP y medalla!'}
+                  {isDailySolved ? t('dailySubCompleted') : t('dailySubTodo')}
                 </p>
               </div>
             </div>
@@ -310,13 +314,13 @@ export default function HomeScreen() {
                     letterSpacing: 0.8,
                   }}
                 >
-                  {totalFamilyStars >= challengeTarget ? '¡Reto Cumplido!' : 'Reto en Familia'}
+                  {totalFamilyStars >= challengeTarget ? t('familyChallengeAchieved') : t('familyChallenge')}
                 </span>
                 <h4 className="font-bold text-ink text-sm mt-0.5 leading-tight" style={{ fontFamily: '"Fredoka",system-ui' }}>
-                  {totalFamilyStars >= challengeTarget ? '🔓 ¡Premio Disponible!' : 'Estrellas en Equipo'}
+                  {totalFamilyStars >= challengeTarget ? t('prizeAvailable') : t('starsTeam')}
                 </h4>
                 <p className="text-[11px] text-ink/75 font-semibold leading-snug mt-0.5" style={{ fontFamily: '"Nunito",system-ui' }}>
-                  Premio: <strong className="text-amber-700">{challengeReward}</strong>
+                  {t('prize')} <strong className="text-amber-700">{challengeReward}</strong>
                 </p>
               </div>
             </div>
@@ -324,7 +328,7 @@ export default function HomeScreen() {
             {/* Progress bar */}
             <div className="mt-3">
               <div className="flex justify-between items-center text-[10px] font-bold text-amber-700 mb-1" style={{ fontFamily: '"Fredoka",system-ui' }}>
-                <span>Progreso de Estrellas de los Niños</span>
+                <span>{t('starsProgress')}</span>
                 <span>{totalFamilyStars} / {challengeTarget} ⭐</span>
               </div>
               <div className="h-2.5 rounded-full overflow-hidden" style={{ background: '#FEF3C7', border: '1px solid rgba(245,158,11,0.15)' }}>
@@ -355,20 +359,20 @@ export default function HomeScreen() {
               color: '#ffffff',
             }}>
             <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" fill="#ffffff"/></svg>
-            ¡JUGAR!
+            {t('play')}
           </button>
 
           <div className="grid grid-cols-2 gap-2.5">
-            <NavPill label="Mapa del Mundo" sub="3 mundos · 15 niveles" color="#5BC5FF" onClick={() => navigate('world-map')}
+            <NavPill label={t('worldMap')} sub={t('worldMapSub')} color="#5BC5FF" onClick={() => navigate('world-map')}
               icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#fff" opacity="0.9"/><path d="M3 12h18M12 3a14 14 0 010 18" stroke="#2890D0" strokeWidth="1.8"/></svg>}/>
-            <NavPill label="Medallas" sub={`${progress.badges.length} medallas`} color="#FFC83D" onClick={() => navigate('rewards')}
+            <NavPill label={t('medals')} sub={`${progress.badges.length} ${t('medalsSub')}`} color="#FFC83D" onClick={() => navigate('rewards')}
               icon={<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l2.4 4.9L20 8l-4 3.9.9 5.5L12 14.8 7.1 17.4 8 11.9 4 8l5.6-1.1z" fill="#fff"/></svg>}/>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5 mt-0.5">
-            <NavPill label="Estilo Bicho" sub="Tienda de sombreros 🎩" color="#FF6FA8" onClick={() => navigate('accessory-store')}
+            <NavPill label={t('bugStyle')} sub={t('bugStyleSub')} color="#FF6FA8" onClick={() => navigate('accessory-store')}
               icon={<span className="text-xl">🎩</span>}/>
-            <NavPill label="Bug Lab" sub={currentChild.totalXP >= 50 ? "Diseñar niveles 🔬" : "Bloqueado (50 XP) 🔒"} color="#8E6BFF" onClick={() => navigate('bug-lab')}
+            <NavPill label={t('bugLab')} sub={currentChild.totalXP >= 50 ? t('bugLabSubOpen') : t('bugLabSubLocked')} color="#8E6BFF" onClick={() => navigate('bug-lab')}
               icon={<span className="text-xl">🔬</span>}/>
           </div>
         </div>
