@@ -168,6 +168,21 @@ export default function WorldMap() {
     };
     window.addEventListener('resize', handleResize);
 
+    const mouse = { x: -1000, y: -1000 };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+
+    const handlePointerLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerleave', handlePointerLeave);
+
     const particles = Array.from({ length: 15 }, (_, i) => ({
       x: Math.random() * width,
       y: Math.random() * height + height,
@@ -179,6 +194,8 @@ export default function WorldMap() {
       opacity: 0.1 + Math.random() * 0.6,
       fadeSpeed: 0.002 + Math.random() * 0.003,
       fadingIn: true,
+      offsetX: 0,
+      offsetY: 0,
     }));
 
     const render = () => {
@@ -190,6 +207,26 @@ export default function WorldMap() {
       particles.forEach(p => {
         p.y -= p.speedY;
         const currentX = p.x + Math.sin(p.y * p.frequency + p.phase) * p.amplitude;
+
+        // Magnet repulsion physics
+        const dx = currentX - mouse.x;
+        const dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const radius = 130;
+
+        if (dist < radius) {
+          const force = (radius - dist) / radius; // 0 to 1
+          const angle = Math.atan2(dy, dx);
+          p.offsetX += Math.cos(angle) * force * 3.5;
+          p.offsetY += Math.sin(angle) * force * 3.5;
+        }
+
+        // Apply friction to smoothly ease the particle offset back to 0
+        p.offsetX *= 0.92;
+        p.offsetY *= 0.92;
+
+        const drawX = currentX + p.offsetX;
+        const drawY = p.y + p.offsetY;
 
         if (p.fadingIn) {
           p.opacity += p.fadeSpeed;
@@ -203,7 +240,7 @@ export default function WorldMap() {
         ctx.globalAlpha = Math.max(0.05, Math.min(1, p.opacity));
         ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
         ctx.shadowBlur = 6;
-        ctx.fillText('✨', currentX, p.y);
+        ctx.fillText('✨', drawX, drawY);
         ctx.restore();
 
         if (p.y < -20) {
@@ -211,6 +248,8 @@ export default function WorldMap() {
           p.x = Math.random() * width;
           p.opacity = 0.1;
           p.fadingIn = true;
+          p.offsetX = 0;
+          p.offsetY = 0;
         }
       });
 
@@ -222,6 +261,8 @@ export default function WorldMap() {
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerleave', handlePointerLeave);
     };
   }, []);
 
