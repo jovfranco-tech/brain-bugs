@@ -14,7 +14,7 @@ import ScreenTimeBlockerOverlay from './components/ScreenTimeBlockerOverlay';
 import { sound } from './lib/sound';
 
 function AppRouter() {
-  const { screen, isScreenTimeLocked, currentChild } = useApp();
+  const { screen, screenParams, isScreenTimeLocked, currentChild } = useApp();
 
   // Handle browser audio context unlock upon first user interaction
   useEffect(() => {
@@ -56,7 +56,7 @@ function AppRouter() {
     <div className="w-full h-full relative overflow-hidden bg-black">
       <AnimatePresence mode="wait">
         <motion.div
-          key={screen}
+          key={`${screen}_${JSON.stringify(screenParams)}`}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
