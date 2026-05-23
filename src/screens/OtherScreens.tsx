@@ -713,7 +713,7 @@ export function ParentDashboard() {
         </div>
 
         <div style="background-color: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">🤖 AI Coach Diagnosis</h2>
+          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">🤖 AI Coach Insights</h2>
           <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #231347;">📐 Spatial Logic & Rotation:</p>
           <p style="font-size: 13px; color: #665C7A; line-height: 1.5; margin: 0 0 12px 0;">
             ${puzzlesSolved === 0 
@@ -790,7 +790,7 @@ export function ParentDashboard() {
         </div>
 
         <div style="background-color: #ffffff; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">🤖 Diagnóstico del AI Coach</h2>
+          <h2 style="font-size: 18px; margin-top: 0; color: #8E6BFF; border-bottom: 2px solid #F4F2FA; padding-bottom: 8px; font-family: sans-serif;">🤖 Recomendaciones del AI Coach</h2>
           <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #231347;">📐 Lógica y Rotación Espacial:</p>
           <p style="font-size: 13px; color: #665C7A; line-height: 1.5; margin: 0 0 12px 0;">
             ${puzzlesSolved === 0 
@@ -2070,6 +2070,43 @@ export function SettingsScreen() {
                 : '✓ Diseño compatible con COPPA · ✓ Sin información personal infantil · ✓ Sin rastreadores de terceros'}
             </p>
           </div>
+        </div>
+
+        {/* AI & Educational Disclaimer Card */}
+        <div className="bg-white rounded-2xl p-4 border border-purple-100 animate-fade-in text-left" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+          <p className="font-bold text-ink mb-2 text-sm" style={{fontFamily:'"Fredoka",system-ui'}}>⚖️ {t('settingsDisclaimerTitle')}</p>
+          
+          <div className="space-y-3 text-xs text-ink/75 leading-relaxed font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>
+            <div className="p-2.5 rounded-xl bg-purple-50/50 border border-purple-100/50 text-[#5A3BD1]">
+              🧠 <strong>{t('settingsDisclaimerCognitive')}</strong>
+            </div>
+            <div className="p-2.5 rounded-xl bg-amber-50/50 border border-amber-100/50 text-amber-850">
+              ⚠️ <strong>{t('settingsDisclaimerDiagnostic')}</strong>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-50/50 border border-slate-100/50 text-slate-600">
+              🤖 <strong>{t('settingsDisclaimerLimitations')}</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Reset Demo Data Card */}
+        <div className="bg-white rounded-2xl p-4 border border-red-100 text-left" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>
+          <p className="font-bold text-red-600 mb-1 text-sm" style={{fontFamily:'"Fredoka",system-ui'}}>🗑️ {t('settingsResetDemoTitle')}</p>
+          <p className="text-xs text-ink/50 font-semibold mb-4 leading-relaxed" style={{fontFamily:'"Nunito",system-ui'}}>
+            {t('settingsResetDemoDesc')}
+          </p>
+          <button
+            onClick={() => {
+              sound.playClick();
+              if (window.confirm(t('settingsResetDemoConfirm'))) {
+                localStorage.clear();
+                window.location.reload();
+              }
+            }}
+            className="w-full py-2.5 rounded-xl font-bold text-center text-white text-sm transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400"
+            style={{background:'linear-gradient(180deg,#FF7B7B,#E53E3E)', fontFamily:'"Fredoka",system-ui', boxShadow:'0 3px 0 #9B2C2C'}}>
+            {t('settingsResetDemoBtn')}
+          </button>
         </div>
 
         <div className="bg-white rounded-2xl p-4" style={{boxShadow:'0 3px 0 rgba(35,19,71,0.07)'}}>

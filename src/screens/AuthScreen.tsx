@@ -7,7 +7,7 @@ interface AuthScreenProps {
 }
 
 export default function AuthScreen({ mode }: AuthScreenProps) {
-  const { signIn, signUp, navigate, isLoading } = useApp();
+  const { signIn, signUp, navigate, isLoading, t } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -17,17 +17,27 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email || !password || (!isLogin && !displayName)) {
-      setError('Por favor, completa todos los campos.');
+    
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password || (!isLogin && !displayName.trim())) {
+      setError(t('authErrorFields'));
       return;
     }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError(t('authErrorEmailInvalid'));
+      return;
+    }
+
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+      setError(t('authErrorPasswordLength'));
       return;
     }
+
     const result = isLogin
-      ? await signIn(email, password)
-      : await signUp(email, password, displayName);
+      ? await signIn(trimmedEmail, password)
+      : await signUp(trimmedEmail, password, displayName);
     if (result?.error) setError(result.error);
   };
 
@@ -47,10 +57,10 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
         <BrainBugsLogo size={26} stacked={false} />
         <h2 className="mt-6 text-2xl font-bold text-ink"
           style={{ fontFamily: '"Fredoka", system-ui' }}>
-          {isLogin ? '¡Bienvenido de nuevo! 👋' : 'Crear Cuenta de Padres'}
+          {isLogin ? t('authWelcomeBack') : t('authCreateAccount')}
         </h2>
-        <p className="mt-1 text-sm text-ink/60 font-semibold" style={{ fontFamily: '"Nunito", system-ui' }}>
-          {isLogin ? 'Inicia sesión para continuar la aventura' : 'Los padres se registran — ¡los niños juegan!'}
+        <p className="mt-1 text-sm text-ink/60 font-semibold text-center" style={{ fontFamily: '"Nunito", system-ui' }}>
+          {isLogin ? t('authWelcomeSub') : t('authCreateSub')}
         </p>
       </div>
 
@@ -59,12 +69,12 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
         {!isLogin && (
           <div>
             <label className="block text-xs font-bold text-ink/60 uppercase tracking-wide mb-2 ml-1"
-              style={{ fontFamily: '"Nunito", system-ui' }}>Tu nombre</label>
+              style={{ fontFamily: '"Nunito", system-ui' }}>{t('authYourName')}</label>
             <input
               type="text"
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
-              placeholder="ej. Sara"
+              placeholder={t('authYourNamePlaceholder')}
               className={inputClass}
               style={inputStyle}
               autoComplete="name"
@@ -74,7 +84,7 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
 
         <div>
           <label className="block text-xs font-bold text-ink/60 uppercase tracking-wide mb-2 ml-1"
-            style={{ fontFamily: '"Nunito", system-ui' }}>Correo electrónico</label>
+            style={{ fontFamily: '"Nunito", system-ui' }}>{t('authEmail')}</label>
           <input
             type="email"
             value={email}
@@ -88,12 +98,12 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
 
         <div>
           <label className="block text-xs font-bold text-ink/60 uppercase tracking-wide mb-2 ml-1"
-            style={{ fontFamily: '"Nunito", system-ui' }}>Contraseña</label>
+            style={{ fontFamily: '"Nunito", system-ui' }}>{t('authPassword')}</label>
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder={isLogin ? '••••••••' : 'Al menos 6 caracteres'}
+            placeholder={isLogin ? t('authPasswordPlaceholderLogin') : t('authPasswordPlaceholderSignup')}
             className={inputClass}
             style={inputStyle}
             autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -117,25 +127,26 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
             boxShadow: '0 6px 0 #5A3BD1',
             letterSpacing: 1,
           }}>
-          {isLoading ? '...' : isLogin ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
+          {isLoading ? '...' : isLogin ? t('authSignInBtn') : t('authSignUpBtn')}
         </button>
 
         <div className="text-center pb-8 mt-2">
           <span className="text-sm text-ink/50 font-semibold" style={{ fontFamily: '"Nunito", system-ui' }}>
-            {isLogin ? '¿No tienes una cuenta? ' : '¿Ya tienes una cuenta? '}
+            {isLogin ? t('authNoAccount') : t('authAlreadyAccount')}
           </span>
           <button
             type="button"
             onClick={() => navigate(isLogin ? 'signup' : 'login')}
             className="text-sm font-bold text-grape underline"
             style={{ fontFamily: '"Nunito", system-ui' }}>
-            {isLogin ? 'Regístrate' : 'Inicia sesión'}
+            {isLogin ? t('authRegisterLink') : t('authLoginLink')}
           </button>
         </div>
       </form>
 
       {/* Back */}
       <button onClick={() => navigate('landing')}
+        aria-label="Volver / Back"
         className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/70 flex items-center justify-center"
         style={{ boxShadow: '0 3px 0 rgba(35,19,71,0.12)' }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

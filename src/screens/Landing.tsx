@@ -4,11 +4,22 @@ import BugSvg from '../components/BugSvg';
 import { useApp } from '../contexts/AppContext';
 
 export default function Landing() {
-  const { navigate } = useApp();
+  const { navigate, language, setLanguage, t } = useApp();
 
   return (
-    <div className="relative flex flex-col h-full overflow-hidden select-none"
+    <div className="relative flex flex-col h-full overflow-hidden select-none animate-fade-in"
       style={{ background: 'linear-gradient(180deg,#C8EAFF 0%,#D8F5C2 50%,#84C660 100%)' }}>
+
+      {/* Language Toggle floating button */}
+      <div className="absolute top-4 left-4 z-50">
+        <button
+          onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+          aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-white/40 shadow-sm text-xs font-bold text-[#231347] active:scale-95 transition-all hover:bg-white"
+        >
+          <span>{language === 'es' ? '🇺🇸 EN' : '🇪🇸 ES'}</span>
+        </button>
+      </div>
 
       {/* Sun */}
       <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full pointer-events-none"
@@ -52,12 +63,12 @@ export default function Landing() {
         <BrainBugsLogo size={34} stacked/>
         <p className="mt-3 text-ink/65 text-base font-semibold tracking-wide"
           style={{fontFamily:'"Fredoka",system-ui'}}>
-          ¡Piensa · Conecta · Resuelve · Crece!
+          {t('lemaSub')}
         </p>
         <div className="mt-2 px-4 py-1.5 rounded-full"
           style={{background:'rgba(255,255,255,0.55)', backdropFilter:'blur(6px)'}}>
           <p className="text-xs font-bold text-ink/60" style={{fontFamily:'"Nunito",system-ui'}}>
-            Rompecabezas espaciales · De 5 a 9 años · Seguro para niños
+            {t('landingSubtitle')}
           </p>
         </div>
       </div>
@@ -74,7 +85,7 @@ export default function Landing() {
             textShadow:'0 2px 0 rgba(0,0,0,0.14)',
             letterSpacing:2,
           }}>
-          ¡EMPEZAR!
+          {t('landingStart')}
         </button>
 
         <button
@@ -85,11 +96,11 @@ export default function Landing() {
             fontFamily:'"Fredoka",system-ui', color:'#231347',
             boxShadow:'0 6px 0 rgba(35,19,71,0.12)',
           }}>
-          Ya tengo una cuenta
+          {t('landingHaveAccount')}
         </button>
 
         <p className="text-center text-xs text-ink/40 font-semibold" style={{fontFamily:'"Nunito",system-ui'}}>
-          Requiere cuenta de padres · Sin anuncios · Sin rastreo
+          {t('landingParentGate')}
         </p>
       </div>
     </div>

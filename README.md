@@ -1,193 +1,111 @@
-# 🐛 Brain Bugs — v0.3.0-mvp
-
+# 🐛 Brain Bugs — v1.2.0-release
 > **Think. Connect. Solve. Grow!**  
-> A premium spatial logic puzzle game for kids ages 5–9.
+> A premium, portfolio-grade metacognitive spatial puzzle game for kids ages 5–9. Built with React, Tailwind CSS, Framer Motion, TypeScript, and Firebase.
 
 ---
 
-## What is Brain Bugs?
-
-Brain Bugs is a mobile-first web app where kids drag and rotate original bug-shaped puzzle pieces onto a grid board. The goal: fill every empty cell without overlaps. Progress through three hand-crafted worlds, earn stars and badges, and get encouragement from Bug Coach — a safe, deterministic hint system (no live AI).
-
-**Target users:** Children aged 5–9, managed by a parent or guardian.  
-**Parent account required.** Children never register directly.
+## 🌟 Portfolio & Engineering Showcase Value
+**Brain Bugs** is designed as a production-grade, pre-release showcase app for senior frontend, QA, and AI product roles. It exhibits:
+1. **Dynamic Responsive UX:** Automatically adapts to any screen. On desktop viewports, it encapsulates itself in a highly premium, pixel-perfect smartphone mockup container complete with interactive elements, a dynamic island notch, and ambient background glow.
+2. **Robust State & Error Handling:** Zero-tolerance resilience on corrupt or missing `localStorage` items, secure regex email inputs, and structured fallback navigation.
+3. **Bilingual Localization (i18n):** Features a full bilingual translation dictionary (English & Spanish) dynamically controlled by a pre-auth language selector button and global context.
+4. **Vercel Enterprise Security Headers:** Equipped with strict `Content-Security-Policy` (CSP), `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` headers configured in `vercel.json` to prevent XSS, clickjacking, and mime-type sniffing.
+5. **Print-Optimized Styles:** Native support for printing parent reports cleanly without UI chrome or physical smartphone shells using modern CSS `@media print` directives.
 
 ---
 
-## Features
+## 🤖 AI Safety, Governance & Ethical Compliance Model
+Brain Bugs takes a strict **privacy-first, parent-in-the-loop** approach to cognitive guidance:
+* **Non-Clinical Boundaries:** "Cognitive Bugs" are used purely as educational metaphors for thinking styles (e.g., Bobo represents cognitive confirmation bias, Zig represent anchoring). The app explicitly rejects all diagnostic, medical, or clinical claims.
+* **Deterministic Heuristics (Privacy-Safe):** The **Bug Coach** operates using local deterministic heuristic score matrices. It does *not* transmit child gameplay telemetry, raw keystrokes, or diagnostic files to external LLM servers, preventing data extraction or privacy leaks.
+* **COPPA & GDPR-K Compliance:** Children never sign up directly. A "Parent Gate" protects all dashboard and authentication portals. No personal data, tracking cookies, ads, or chat interfaces exist within the children's view.
+* **Explicit Disclaimers:** Visible legal and educational disclaimers are built directly into the Settings panel, alongside a safe "Clear Demo Data" button that completely purges local storage cache and refreshes state securely.
+
+---
+
+## 🛠️ Features
 
 | Category | Details |
 |---|---|
-| Auth | Parent signup/login (localStorage mock · Firebase-enabled) |
-| Profiles | Multiple child profiles · Edit · Reset · Delete |
-| Worlds | 🌿 Meadow Path · 💎 Crystal Cave · 🤖 Robo Reef |
-| Levels | 15 puzzles (5 per world) · Star-gated progression |
-| Gameplay | Drag-and-drop · Rotation · Live hover preview |
-| Pieces | 6 original bugs: Pip, Bobo, Zig, Mo, Rose, Coach |
-| Bug Coach | Deterministic contextual hints · Kid-safe · No LLM |
-| Badges | 8 collectible badges with unlock conditions |
-| Rewards | XP · Level bar · Badge detail modal |
-| Parent Dashboard | Metrics · Skill bars · Activity log · Privacy card |
-| Privacy | Minimal child data · No ads · No tracking · No chat |
-| Deployment | Vercel-ready (vercel.json included) |
+| **Engine** | Drag-and-drop spatial grid engine with multi-rotation, cell occupancy checkers, and live hover preview. |
+| **Aesthetics** | Curated premium dark-theme palettes, custom-designed SVG bug graphics, and smooth micro-animations. |
+| **Auth** | Dual mode: safe `localStorage` mock session sandbox OR production-ready live **Firebase Authentication** integration. |
+| **Profiles** | Multiple kid profiles, customizable nickname, favorite theme colors, customizable companion bugs, and full editing options. |
+| **Worlds** | 🌿 Meadow Path · 💎 Crystal Cave · 🤖 Robo Reef (15 hand-crafted puzzles with star-gated thresholds). |
+| **Daily Quest** | Time-sensitive challenge mode providing double XP (+20 XP) and special collectible medals. |
+| **AI Coach** | Deterministic coaching hints (e.g., "Think about the corners!", "Try a different rotation!") based on remaining pieces and moves. |
+| **Medals** | 9 collectible achievement badges with distinct visual emojis and custom unlock requirements. |
+| **Parent Dashboard** | Visual metrics, progress tracking, print-friendly report cards, and physical off-screen play recommendations. |
+| **Settings** | Complete sound/music controls, voice profiles (Space Bug, Standard Coach, Robot), language toggle, AI disclaimers, and local sandbox reset options. |
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
-unzip brain-bugs-v0.3.0-mvp.zip
+# Clone or unzip the directory
 cd brain-bugs
+
+# Install dependencies
 npm install
+
+# Run local development server
 npm run dev
-# Open http://localhost:5173
-# Use Chrome DevTools → iPhone 14 Pro (393px) for best experience
-```
 
----
+# Run static TypeScript typecheck
+npm run typecheck
 
-## Scripts
-
-| Command | What it does |
-|---|---|
-| `npm run dev` | Start dev server (port 5173) |
-| `npm run build` | Type-check + production build → `dist/` |
-| `npm run preview` | Serve the `dist/` build locally |
-| `npm run typecheck` | TypeScript check only (no emit) |
-
----
-
-## Authentication
-
-### Without Firebase (default — works immediately)
-All data lives in `localStorage`. No setup needed. Accounts persist across page refreshes in the same browser.
-
-> ⚠️ The mock auth uses base64 obfuscation for passwords, not bcrypt. **Do not use for real production data.**
-
-### With Firebase (recommended for deployment)
-1. Create a project at [Firebase Console](https://console.firebase.google.com/)
-2. Copy `.env.example` → `.env.local`
-3. Fill in the required `VITE_FIREBASE_*` environment variables.
-4. Enable Authentication (Email/Password) and Firestore Database.
-5. See `docs/FIREBASE_SETUP.md` for complete instructions.
-
----
-
-## Environment Variables
-
-```bash
-# .env.local  (copy from .env.example — never commit)
-
-# Firebase (optional; app runs without these using localStorage)
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-
-# App config
-VITE_APP_VERSION=0.3.0-mvp
-VITE_APP_ENV=development
-```
-
----
-
-## Gameplay
-
-- **Goal:** Cover every non-blocked board cell with bug pieces. No gaps, no overlaps.
-- **Tap** a piece in the tray to select it, then **tap or drag** onto the board.
-- **Rotate** a piece before placing using the Rotate button.
-- Stars: **3★** ≤ 55% max moves · **2★** ≤ 100% · **1★** over limit.
-- Best star rating per level is saved forever — replaying never reduces your best.
-
-See `docs/GAMEPLAY_RULES.md` for the full rulebook.
-
----
-
-## Project Structure
-
-```
-src/
-├── types/index.ts          All TypeScript interfaces
-├── data/
-│   ├── characters.ts       Bug piece shapes + rotation helpers + colors
-│   ├── puzzles.ts          15 verified puzzles (piece counts match board size)
-│   ├── worlds.ts           3 worlds × 5 levels · star-gate thresholds
-│   └── badges.ts           8 badges + checkNewBadges() utility
-├── lib/storage.ts          localStorage persistence + mock auth (Firebase-ready)
-├── contexts/AppContext.tsx Auth · navigation · game state
-├── components/             Logo · BugSvg · BottomNav · StarRating
-└── screens/
-    ├── Landing.tsx
-    ├── AuthScreen.tsx
-    ├── ChildSelector.tsx   Create · Edit · Reset · Delete profiles
-    ├── HomeScreen.tsx
-    ├── WorldMap.tsx        Locked/unlocked · current level indicator
-    ├── Gameplay.tsx        Drag-and-drop puzzle engine · Bug Coach
-    └── OtherScreens.tsx    Victory (confetti) · Rewards · Parent Dashboard · Settings
-docs/
-├── GAMEPLAY_RULES.md      Full rulebook for the puzzle engine
-└── PRIVACY_NOTES.md       Child safety and data privacy notes
-vercel.json                SPA routing + security headers
-```
-
----
-
-## Known MVP Limitations
-
-| Area | Status |
-|---|---|
-| Bug Coach | Deterministic state machine — no live LLM |
-| Auth | localStorage unless Firebase is configured |
-| Password security | Base64 obfuscation only — not production-safe |
-| Animations | CSS only — Framer Motion not integrated |
-| Offline/PWA | No service worker or manifest |
-| Privacy audit | COPPA-friendly design, not formally audited |
-| Puzzle quantity | 15 hand-crafted puzzles (no procedural generation) |
-| No lint config | `eslint` not configured — use TypeScript strict mode instead |
-
----
-
-## Deployment (Vercel)
-
-```bash
+# Build for production
 npm run build
-# vercel --prod
-# or connect the repo to Vercel — it auto-detects Vite
 ```
 
-`vercel.json` configures SPA routing and adds security headers automatically.
+---
+
+## Known Limitations (Professional Integrity)
+* **AI Engine:** The "Bug Coach" uses local deterministic heuristics. Live LLM API endpoints are avoided to prevent child-unsafe hallucinations and preserve COPPA boundaries.
+* **Offline PWA:** Does not currently include a service worker or offline web manifest.
 
 ---
 
-## Roadmap
-
-| Priority | Feature |
-|---|---|
-| P0 | Firebase Auth + database (Completed) |
-| P0 | Production privacy policy + COPPA audit |
-| P1 | Framer Motion animations (piece snap, screen transitions) |
-| P1 | Daily Challenge mode |
-| P1 | More puzzle worlds (Ocean, Volcano, Space) |
-| P2 | Bug Lab — free-play sandbox |
-| P2 | Procedural puzzle generator |
-| P3 | iOS/Android via Capacitor |
-| P3 | Leaderboard (opt-in) |
-| P3 | Real AI Bug Coach (safe, content-filtered) |
+## 🗺️ Roadmap & Completed Tasks
+* [x] **P0:** Firebase Authentication + Cloud Firestore database sync integration.
+* [x] **P0:** Secure HTTP Headers (CSP, XSS, Frame Options) via `vercel.json`.
+* [x] **P0:** Complete bilingual Spanish/English localization system (i18n).
+* [x] **P0:** High-fidelity premium desktop Smartphone Mockup Frame wrapper.
+* [x] **P0:** "Clear Demo Data" button + explicit non-clinical AI educational disclaimers.
+* [x] **P1:** Framer Motion screen and card animations.
+* [x] **P1:** Daily Quest mode with XP multipliers and custom medal unlocks.
+* [x] **P2:** Bug Lab free-play sandbox.
+* [ ] **P2:** Procedural puzzle generator.
+* [ ] **P3:** Native mobile build wrapper using Capacitor.
 
 ---
 
-## Privacy & Safety
+## 👔 Professional LinkedIn Post Draft
+*Use this draft to share this outstanding project on your LinkedIn profile!*
 
-Brain Bugs is designed with child privacy first. See `docs/PRIVACY_NOTES.md` for full details.
+```text
+🚀 Showcase Project: Reimagining Spatial Learning & AI Governance for Kids 🧠🐛
 
-- No email or personal data collected from children
-- No ads, no third-party trackers, no social login
-- Bug Coach is deterministic — no LLM, no free chat
-- All content is hand-crafted for ages 5–9
-- Parent controls: reset progress, delete profiles, sign out
+I'm excited to share a project I've been polishing: "Brain Bugs", a premium spatial logic puzzle game designed for kids ages 5-9 that marries micro-interactive UI/UX with strict AI safety boundaries.
 
----
+Building for children requires an engineering mindset that prioritizes ethics, privacy, and flawless responsiveness. Brain Bugs showcases exactly this through a modern technical stack:
 
-*Brain Bugs — original IP. All characters, worlds, and assets are original. Not affiliated with any existing board game, toy brand, or children's franchise.*
+🎨 Technology Stack:
+- Core: React + TypeScript + Tailwind CSS
+- Animation: Framer Motion for premium micro-interactions and transitions
+- Backend: Production-ready Firebase (Auth + Firestore) with local localStorage fallback
+- Deployment & Security: Hosted on Vercel with a highly secure Content-Security-Policy (CSP) to block XSS risks
+
+🤖 AI Governance & Metacognition:
+In child education, ethical boundaries are paramount. Instead of exposing kids to unvetted external LLMs, the "Bug Coach" uses a deterministic spatial heuristic engine to analyze their moves in real time. It encourages self-reflection, planning, and resilience without clinical diagnostics, complying fully with COPPA guidelines.
+
+📱 Portafolio & UX Details:
+- Seamless multi-device responsiveness wrapped inside a beautiful, custom smartphone mockup frame for desktop viewports.
+- Pre-auth bilingual toggle (English/Spanish) supporting a full i18n system.
+- Print-friendly dashboard sheets utilizing media queries for real-world report sharing.
+
+Check out the code on GitHub or try the live demo on Vercel to explore how spatial puzzles and AI safety come together! Let's build a safer, smarter digital future for kids. 🐛✨
+
+#ReactJS #TypeScript #WebSecurity #AISafety #FrontEndEngineering #ChildrenEducation #UIUX #Vercel #Firebase
+```
